@@ -124,7 +124,8 @@ For plugins with large amounts of text:
 - **Version Tracking**: Automatic monitoring of plugin versions
 
 *Deletion uses Obsidian's official API trash method.
-*The destination for deleted translation files varies based on the official Obsidian setting "Settings > Files & Links > Deleted Files".
+
+*The destination for deleted translation files varies based on the official Obsidian setting "Options > Files and Links > Deleted Files".
 
 ## 🎨 Customization
 
