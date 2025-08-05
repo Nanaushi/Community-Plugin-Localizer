@@ -6,9 +6,13 @@ While the example shows translation from English to Japanese,
 all languages supported by translation services including Google Translate are available.
 
 English → Japanese
+
 English → Arabic
+
 English → Korean
+
 English → German
+
 English → French
 etc...
 
