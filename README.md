@@ -1,7 +1,7 @@
 # Community-Plugin-Localizer
 
 A plugin that enables translation and localization of Obsidian community plugins into multiple languages.
-You can translate plugin settings screen text from English to various languages.
+You can translate plugin settings screen text from English to **various languages**.
 While the example shows translation from English to Japanese,
 all languages supported by translation services including Google Translate are available.
 
