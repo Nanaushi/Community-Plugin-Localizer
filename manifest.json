@@ -1,0 +1,10 @@
+{
+  "id": "CPLocalizer",
+  "name": "Community Plugin Localizer",
+  "version": "1.0.0",
+  "minAppVersion": "1.8.10",
+  "description": "You can translate plugin settings screen text from English to various languages.",
+  "author": "Nanaushi",
+  "authorUrl": "https://github.com/Nanaushi",
+  "isDesktopOnly": false
+}
