@@ -17,6 +17,10 @@ English → French
 
 etc...
 
+https://github.com/user-attachments/assets/53b34cae-2a7b-47de-9a52-73aae6b07a35
+
+
+
 ## ✨ Features
 
 ### 🚀 Core Features
@@ -33,7 +37,10 @@ etc...
 - **English** (Default)
 - **日本語** (Japanese)
 - **한국어** (Korean)
-We plan to add more supported languages upon request.
+
+**We plan to add more supported languages upon request.**
+
+https://github.com/user-attachments/assets/7a007970-c606-454c-8a11-7f1922a86756
 
 ## 📦 Installation
 
@@ -51,6 +58,9 @@ We plan to add more supported languages upon request.
 ## 🎮 Usage
 
 ### Quick Start
+
+https://github.com/user-attachments/assets/b09c83bd-ce64-4bcb-bcc3-01b040b042c2
+
 1. Open any plugin's settings screen
 2. Click the floating button (☰)
 3. Click "📋 Extract" button to extract translatable strings
