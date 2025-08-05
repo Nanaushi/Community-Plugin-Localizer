@@ -14,6 +14,7 @@ English → Korean
 English → German
 
 English → French
+
 etc...
 
 ## ✨ Features
