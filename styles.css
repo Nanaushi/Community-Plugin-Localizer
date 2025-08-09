@@ -1,0 +1,841 @@
+/* 基本レイアウト */
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(0.5deg) scale(1.1); }
+  75% { transform: rotate(-0.5deg) scale(1.1); }
+}
+.cp-localizer-dragging {
+  animation: wiggle 0.3s ease-in-out infinite !important;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.3) !important;
+  cursor: move !important;
+  z-index: 1001 !important;
+  user-select: none !important;
+}
+/* フローティングボタン基本スタイル ✅*/
+.cp-localizer-floating-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  user-select: none;
+  /*ドラッグ用*/
+  transition: all 0.2s ease;
+  touch-action: none;
+  left: var(--button-x, 10px);
+  top: var(--button-y, 10px);
+  right: auto;
+}
+/* トグルボタン ✅*/
+.cp-localizer-floating-button .cp-localizer-toggle-button {
+  background: var(--interactive-accent);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  color: var(--text-on-accent);
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 8px 10px;
+  margin-bottom: 5px;
+  box-shadow: var(--shadow-s);
+  transition: all 0.2s ease;
+  transform-origin: center center;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* ドロワーコンテナ ✅*/
+.cp-localizer-drawer-container {
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  padding: 8px;
+  box-shadow: var(--shadow-s);
+  display: none;
+  gap: 6px;
+  min-width: 120px;
+  width: max-content;
+  max-width: none;
+  opacity: 0;
+  transition: all 0.3s ease;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 5px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: nowrap;
+}
+
+.cp-localizer-drawer-container.horizontal {
+  flex-direction: row;
+}
+
+.cp-localizer-drawer-container.vertical {
+  flex-direction: column;
+}
+
+/* ドロワー共通内ボタン */
+.cp-localizer-edit-button,
+.cp-localizer-delete-button,
+.cp-localizer-drawer-container .cp-localizer-drawer-button {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 6px 8px;
+  width: 100%;
+  text-align: left;
+  transition: background-color 0.2s ease;
+}
+
+/* 編集ボタンの状態表示 */
+.cp-localizer-delete-button.delete-available,
+.cp-localizer-edit-button.edit-available {
+  opacity: 1;
+}
+.cp-localizer-delete-button.delete-unavailable,
+.cp-localizer-edit-button.edit-unavailable,
+.cp-localizer-drawer-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cp-localizer-edit-button:hover:not(:disabled),
+.cp-localizer-delete-button:hover:not(:disabled),
+.cp-localizer-drawer-button:hover:not(:disabled) {
+  cursor: pointer;
+}
+.cp-localizer-delete-button:not(:disabled):hover {
+  background: var(--color-red) !important;
+  color: white !important;
+}
+
+/* 翻訳ON/OFFボタンの状態表示 */
+.cp-localizer-drawer-button.translation-enabled {
+  opacity: 1;
+}
+.cp-localizer-drawer-button.translation-disabled {
+  opacity: 0.7;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .cp-localizer-drawer-container {
+    font-size: 11px !important;
+    padding: 6px !important;
+  }
+  .cp-localizer-drawer-button {
+    padding: 5px 6px !important;
+    font-size: 10px !important;
+    min-height: 28px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100% !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .cp-localizer-drawer-button {
+    font-size: 9px !important;
+    padding: 4px 5px !important;
+    min-height: 24px !important;
+  }
+}
+
+/* ドラッグ終了処理*/
+.cp-localizer-body-dragging {
+  user-select: none !important;
+}
+.cp-localizer-drawer-container.display-flex{
+  display: flex;
+}
+/* 短いタップ/クリック = メニュートグル */
+.cp-localizer-drawer-container.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.cp-localizer-drawer-container.hide {
+  transform: translateY(-10px);
+  opacity: 0;
+}
+
+.cp-localizer-drawer-container.display-none {
+  display: none;
+}
+
+/* 翻訳プレビューモーダル検索バー*/
+.cp-localizer-search-container {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+/*検索ボックス*/
+.cp-localizer-search-container .cp-localizer-search-input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 3px;
+  background: var(--background-primary);
+  font-size: 13px;
+}
+/*検索対象選択*/
+.cp-localizer-search-container .cp-localizer-search-select {
+  padding: 6px 8px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 3px;
+  background: var(--background-primary);
+  font-size: 13px;
+}
+/* 検索結果表示*/
+.cp-localizer-search-container .cp-localizer-search-result-span {
+  font-size: 12px;
+  color: var(--text-muted);
+  min-width: 80px;
+}
+/*ナビゲーションボタン 上下ボタン*/
+.cp-localizer-search-container .cp-localizer-search-button {
+  padding: 4px 8px;
+  background: var(--interactive-normal);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+}
+/* ステータス表示*/
+.cp-localizer-status-display {
+  padding: 8px 12px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+/*contentElにflexレイアウトを追加 */
+.cp-localizer-modal-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 20px;
+}
+/*スクロール可能なコンテンツエリア✅*/
+.cp-localizer-scroll-container {
+  flex: 1;
+  overflow-y: auto;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 16px;
+  min-height: 200px;
+}
+
+/*行✅*/
+.cp-localizer-translation-row {
+  display: grid;
+  grid-template-columns: 40px 30px 1fr 1fr 30px 30px;
+  gap: 8px;
+  margin-bottom: 12px;
+  align-items: start;
+}
+/*行番号✅*/
+.cp-localizer-line-number {
+  text-align: center;
+  font-weight: 500;
+  color: var(--text-muted);
+  padding-top: 8px;
+}
+/*オリジナルテキストコピーボタン✅*/
+.cp-localizer-scroll-container .cp-localizer-copy-button {
+  padding: 4px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  height: 24px;
+  margin-top: 6px;
+  transition: background-color 0.2s ease;
+}
+/*元文字列✅*/
+.cp-localizer-original-text {
+  padding: 8px 12px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.4;
+  word-wrap: break-word;
+  max-height: 100px;
+  overflow-y: auto;
+}
+/*翻訳入力フィールド✅*/
+.cp-localizer-translation-input {
+  padding: 8px 12px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.4;
+  min-height: 36px;
+  resize: vertical;
+}
+/*上下空白移動ボタン✅*/
+.cp-localizer-scroll-container .cp-localizer-move-button {
+  padding: 4px;
+  background: var(--interactive-normal);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  height: 24px;
+  margin-top: 6px;
+}
+/*翻訳プレビュー下ボタンエリア✅*/
+.cp-localizer-button-area {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+/*右側ボタングループ✅*/
+.cp-localizer-button-group {
+  display: flex;
+  gap: 8px;
+}
+/*キャンセルボタン✅*/
+.cp-localizer-button-area .cp-localizer-cancel-button {
+  padding: 8px 16px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+/*保存ボタン✅*/
+.cp-localizer-button-area .cp-localizer-save-button {
+  padding: 8px 16px;
+  background: var(--interactive-accent);
+  border: 1px solid var(--interactive-accent);
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-on-accent);
+}
+/*updateSearchDisplay*/
+.cp-localizer-search-button:disabled {
+  opacity: 0.5;
+}
+
+.cp-localizer-search-button:not(:disabled) {
+  opacity: 1;
+}
+/*プレビューモーダルの保存ボタン透明度0.5*/
+.cp-localizer-save-button:disabled,
+.cp-localizer-move-button:disabled {
+  opacity: 0.5;
+}
+/*プレビューモーダルの保存ボタン透明度1*/
+.cp-localizer-save-button:not(:disabled),
+.cp-localizer-move-button:not(:disabled) {
+  opacity: 1;
+}
+
+.cp-localizer-move-button:disabled {
+  cursor: not-allowed;
+}
+
+.cp-localizer-move-button:not(:disabled) {
+  cursor: pointer;
+}
+
+/* 翻訳プレビューモーダル検索ハイライト（既存の .cp-localizer-save-button の直後に追加）*/
+/*highlightSearchResultsメソッドで使用した*/
+.cp-localizer-search-highlight {
+  border: 2px solid var(--color-yellow);
+  border-radius: 6px;
+  padding: 8px;
+  position: relative;
+}
+
+.cp-localizer-search-current {
+  border: 3px solid var(--interactive-accent);
+  border-radius: 6px;
+  padding: 8px;
+  position: relative;
+}
+
+.cp-localizer-search-icon {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* 検索ハイライト用アニメーション*/
+.search-result-icon {
+  animation: searchPulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes searchPulse {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.1); }
+}
+
+/* 黄色の定義（テーマに依存しない） */
+:root {
+  --color-yellow: #f1c40f;
+}
+
+/* ダークテーマでの調整 */
+.theme-dark {
+  --color-yellow: #f39c12;
+}
+
+/* テキスト内ハイライト用スタイル */
+.search-highlight-current {
+  background-color: var(--interactive-accent) !important;
+  color: white !important;
+  padding: 1px 2px;
+  border-radius: 2px;
+  font-weight: bold;
+  animation: textHighlightPulse 1.5s ease-in-out infinite alternate;
+}
+
+
+.search-highlight-other {
+  background-color: var(--color-yellow) !important;
+  color: black !important;
+  padding: 1px 2px;
+  border-radius: 2px;
+  font-weight: 500;
+}
+
+@keyframes textHighlightPulse {
+  0% { box-shadow: 0 0 2px var(--interactive-accent); }
+  100% { box-shadow: 0 0 6px var(--interactive-accent); }
+}
+
+.cp-localizer-search-icon::before {
+  content: '🔍';
+}
+
+.cp-localizer-search-icon.current-icon::before {
+  content: '🎯';
+}
+
+.cp-localizer-search-icon.current-icon {
+  background: var(--interactive-accent);
+}
+
+.cp-localizer-search-icon.other-icon {
+  background: var(--color-yellow);
+}
+
+.cp-localizer-search-element-highlight {
+  border: 1px solid var(--interactive-accent);
+  border-radius: 4px;
+}
+
+.cp-localizer-search-element-other {
+  border: 1px solid var(--color-yellow);
+  border-radius: 4px;
+}
+
+.cp-localizer-search-translation-highlight {
+  background-color: rgba(var(--interactive-accent-rgb), 0.1);
+}
+
+.cp-localizer-search-translation-other {
+  background-color: rgba(241, 196, 15, 0.1);
+}
+
+/*setupModalResize*/
+.cp-localizer-modal-resizable {
+  max-width: none;
+  max-height: none;
+  min-width: 600px;
+  min-height: 500px;
+  resize: none;
+}
+
+
+.cp-localizer-resize-handle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  cursor: nw-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--background-primary);
+  border-left: 1px solid var(--background-modifier-border);
+  border-top: 1px solid var(--background-modifier-border);
+  user-select: none;
+  transition: color 0.2s ease;
+}
+
+/* チャンク管理モーダル追加スタイル*/
+.cp-localizer-stats-display {
+  padding: 12px 16px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+.cp-localizer-stats-line {
+  margin-top: 4px;
+}
+
+.cp-localizer-status-message {
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.cp-localizer-button-area-between {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.cp-localizer-button-area-between .cp-localizer-go-to-transprev-button {
+  padding: 8px 16px;
+  background: var(--interactive-accent);
+  border: 1px solid var(--interactive-accent);
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-on-accent);
+}
+/*updatePreviewButtonState　翻訳プレビューへ移動ボタンのオフ*/
+.cp-localizer-go-to-transprev-button:disabled {
+  opacity: 0.5;
+}
+/*updatePreviewButtonState　翻訳プレビューへ移動ボタンのオン*/
+.cp-localizer-go-to-transprev-button:not(:disabled) {
+  opacity: 1;
+}
+.cp-localizer-button-area-between .cp-localizer-chunk-management-cancel-button {
+  padding: 8px 16px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+/*================================*/
+/*createChunkElement*/
+.cp-localizer-chunk-element {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: var(--background-primary);
+}
+
+.cp-localizer-chunk-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.cp-localizer-chunk-status[data-status="completed"] {
+  color: var(--text-success);
+}
+
+.cp-localizer-chunk-status[data-status="mismatch"] {
+  color: var(--text-error);
+}
+
+.cp-localizer-chunk-status[data-status="pending"] {
+  color: var(--text-muted);
+}
+
+.cp-localizer-chunk-preview {
+  background: var(--background-secondary);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  max-height: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cp-localizer-chunk-buttons {
+  display: flex;
+  gap: 8px;
+}
+.cp-localizer-chunk-edit-button,
+.cp-localizer-chunk-button {
+  padding: 6px 12px;
+  background: var(--interactive-normal);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background-color 0.2s ease;
+}
+/* チャンク編集ボタンの状態管*/
+.cp-localizer-chunk-edit-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cp-localizer-chunk-edit-button:not(:disabled) {
+  opacity: 1;
+  cursor: pointer;
+}
+
+/*updateStatusMessage 下側ステータスメッセージの変化*/
+.cp-localizer-status-error {
+  color: var(--text-error);
+}
+
+.cp-localizer-status-muted {
+  color: var(--text-muted);
+}
+
+.cp-localizer-status-accent {
+  color: var(--text-accent);
+}
+
+.cp-localizer-status-success {
+  color: var(--text-success);
+}
+
+/* チャンク管理モーダルリサイズ機能 setupModalResize*/
+.cp-localizer-chunk-modal-resizable {
+  max-width: none;
+  max-height: none;
+  min-width: 600px;
+  min-height: 550px;
+  resize: none;
+}
+/*=======================================================*/
+/*CommunityPluginLocalizerSettingTab */
+/*保存場所を表示*/
+.cp-localizer-path-display {
+  font-family: var(--font-monospace);
+  background: var(--background-secondary);
+  padding: 8px;
+  border-radius: 4px;
+  margin-top: 8px;
+  font-size: 12px;
+}
+/*========================================================*/
+/* 設定画面テスト機能*/
+/*説明文を3行で作成*/
+.cp-localizer-test-desc-muted {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.cp-localizer-test-desc-spaced {
+  margin-top: 8px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+/*テスト用コンテナを作成*/
+.cp-localizer-test-container {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  padding: 16px;
+  margin: 12px 0;
+  background: var(--background-secondary);
+}
+/* テキストエリア*/
+.cp-localizer-test-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 8px 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background: var(--background-primary);
+  font-family: var(--font-text);
+  font-size: 14px;
+  resize: vertical;
+  margin-bottom: 12px;
+}
+/*ボタンエリア*/
+.cp-localizer-test-button-area {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+/*判定実行ボタン*/
+.cp-localizer-test-container .cp-localizer-test-button-primary {
+  padding: 8px 16px;
+  background: var(--interactive-accent);
+  border: 1px solid var(--interactive-accent);
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-on-accent);
+  font-weight: 500;
+}
+/*クリアボタン*/
+.cp-localizer-test-button-secondary {
+  padding: 8px 16px;
+  background: var(--interactive-normal);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+/*結果表示エリア*/
+.cp-localizer-test-result-area {
+  min-height: 40px;
+  display: none;
+}
+.cp-localizer-test-result-area.show {
+  display: block;
+}
+.cp-localizer-test-error-text {
+  color: var(--text-error);
+  padding: 8px;
+}
+
+/*======================================================*/
+/*テスト結果表示メソッド*/
+/* テスト結果表示スタイル（既存の .cp-localizer-test-error-text の直後に追加）*/
+.cp-localizer-test-error-container {
+  padding: 12px;
+  background: var(--background-primary);
+  border: 2px solid var(--text-error);
+  border-radius: 4px;
+  color: var(--text-error);
+}
+/*メイン結果*/
+.cp-localizer-test-result-container {
+  padding: 12px;
+  background: var(--background-primary);
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+/*メイン結果成功時*/
+.cp-localizer-test-result-container[data-result="success"] {
+  border: 2px solid var(--text-success);
+}
+/*メイン結果失敗時*/
+.cp-localizer-test-result-container[data-result="failed"] {
+  border: 2px solid var(--text-error);
+}
+/*メイン結果の文字の色*/
+.cp-localizer-test-result-title {
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+/*メイン結果の文字の色-green*/
+.cp-localizer-test-result-title[data-result="success"] {
+  color: var(--text-success);
+}
+/*メイン結果の文字の色-red*/
+.cp-localizer-test-result-title[data-result="failed"] {
+  color: var(--text-error);
+}
+/*除外理由*/
+.cp-localizer-test-reason-section {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--background-modifier-border);
+}
+.cp-localizer-test-reason-text {
+  color: var(--text-error);
+  font-weight: 500;
+}
+
+.cp-localizer-test-detail-text {
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+/*判定ステップ*/
+.cp-localizer-test-steps-container {
+  padding: 12px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+}
+/*判定理由*/
+.cp-localizer-test-step-item {
+  padding: 4px 8px;
+  margin: 2px 0;
+  border-radius: 3px;
+}
+/*判定理由-error*/
+.cp-localizer-test-step-item[data-status="error"] {
+  background: rgba(var(--color-red-rgb), 0.1);
+}
+/*判定理由-success*/
+.cp-localizer-test-step-item[data-status="success"] {
+  background: rgba(var(--color-green-rgb), 0.1);
+}
+/*判定理由-neutral*/
+.cp-localizer-test-step-item[data-status="neutral"] {
+  background: var(--background-secondary);
+}
+/*判定名*/
+.cp-localizer-test-steps-title {
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+/* 判定詳細説明*/
+.cp-localizer-test-step-reason {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/*======================================================*/
+/* 削除確認モーダル*/
+.cp-localizer-warning-container {
+  padding: 16px;
+  background: var(--background-secondary);
+  border: 2px solid var(--text-error);
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+/*赤色警告メッセージ*/
+.cp-localizer-warning-title {
+  font-weight: bold;
+  color: var(--text-error);
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.cp-localizer-result-description {
+  padding: 12px;
+  margin-bottom: 20px;
+  color: var(--text-muted);
+}
+
+.cp-localizer-button-area .cp-localizer-delete-button {
+  padding: 8px 16px;
+  background: var(--text-error);
+  border: 1px solid var(--text-error);
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-on-accent);
+  font-weight: bold;
+}

@@ -1206,60 +1206,6 @@ module.exports = class CommunityPluginLocalizerPlugin extends Plugin {
     if (!this.settings.showFloatingButton) {
       return;
     }
-    // ドラッグ用CSSスタイルを追加
-    if (!document.querySelector('#cp-localizer-drag-styles')) {
-      const dragStyles = document.createElement('style');
-      dragStyles.id = 'cp-localizer-drag-styles';
-      dragStyles.textContent = `
-        @keyframes wiggle {
-          0%, 100% { transform: rotate(0deg) scale(1); }
-          25% { transform: rotate(0.5deg) scale(1.1); }
-          75% { transform: rotate(-0.5deg) scale(1.1); }
-        }
-        .cp-localizer-dragging {
-          animation: wiggle 0.3s ease-in-out infinite !important;
-          box-shadow: 0 8px 25px rgba(0,0,0,0.3) !important;
-          cursor: move !important;
-          z-index: 1001 !important;
-        }
-        .cp-localizer-floating-button {
-          transition: all 0.2s ease;
-          touch-action: none; /* タッチ操作の最適化 */
-        }
-        .cp-localizer-toggle-button {
-          touch-action: none; /* ドラッグ用ボタンのタッチ最適化 */
-          user-select: none;
-          -webkit-user-select: none;
-          -webkit-touch-callout: none; /* iOS長押しメニュー無効化 */
-        }
-        @media (max-width: 768px) {
-          .cp-localizer-drawer-container {
-            font-size: 11px !important;
-            padding: 6px !important;
-          }
-          .cp-localizer-drawer-container {
-            padding: 5px 6px !important;
-            font-size: 10px !important;
-            min-height: 28px !important;
-
-            /* === ボタンテキストオーバーフロー対策 === */
-            white-space: nowrap !important;
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
-            max-width: 100% !important;
-          }
-        }
-        /* === 極小画面対応 === */
-        @media (max-width: 480px) {
-          .cp-localizer-drawer-container button {
-            font-size: 9px !important;
-            padding: 4px 5px !important;
-            min-height: 24px !important;
-          }
-        }
-      `;
-      document.head.appendChild(dragStyles);
-    }
 
     // 既存のボタンを削除
     const existingButton = modal.querySelector('.cp-localizer-floating-button');
@@ -1267,92 +1213,29 @@ module.exports = class CommunityPluginLocalizerPlugin extends Plugin {
       existingButton.remove();
     }
 
+    // ドロワーコンテナ（ボタン群を格納）
+    const drawerContainer = document.createElement('div');
+    drawerContainer.className = 'cp-localizer-drawer-container';
+    
+    // ボタンコンテナ
+    const buttonContainer = document.createElement('div');
+    buttonContainer.className = 'cp-localizer-floating-button';
+    
     // トグルボタン（ハンバーガーメニュー）
     const toggleButton = document.createElement('button');
     toggleButton.className = 'cp-localizer-toggle-button';
     toggleButton.textContent = '☰';
-    toggleButton.style.cssText = `
-      background: var(--interactive-accent);
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 6px;
-      color: var(--text-on-accent);
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      padding: 8px 10px;
-      margin-bottom: 5px;
-      box-shadow: var(--shadow-s);
-      transition: all 0.2s ease;
-      transform-origin: center center;
-    `;
-
-    // ドロワーコンテナ（ボタン群を格納）
-    const drawerContainer = document.createElement('div');
-    drawerContainer.className = 'cp-localizer-drawer-container';
 
     // === モバイル対応: 動的幅計算 ===
     const isMobile = window.innerWidth < 768;
     const maxDrawerWidth = isMobile ? Math.min(window.innerWidth * 0.85, 300) : 400;
 
-    drawerContainer.style.cssText = `
-      background: var(--background-primary);
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 6px;
-      padding: 8px;
-      box-shadow: var(--shadow-s);
-      display: none;
-      flex-direction: ${this.settings.menuLayoutHorizontal ? 'row' : 'column'};
-      gap: 6px;
-      min-width: 120px;
-      width: max-content;
-      max-width: none;
-      opacity: 0;
-      transition: all 0.3s ease;
-      position: absolute;
-      top: 100%;
-      left: 0;
-      margin-top: 5px;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
-      white-space: nowrap;
-    `;
-
-    // ボタンコンテナ
-    const buttonContainer = document.createElement('div');
-    buttonContainer.className = 'cp-localizer-floating-button';
-    buttonContainer.style.cssText = `
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      user-select: none;
-    `;
+    drawerContainer.className = `cp-localizer-drawer-container ${this.settings.menuLayoutHorizontal ? 'horizontal' : 'vertical'}`;
     
     // 抽出ボタン
     const extractButton = document.createElement('button');
     extractButton.textContent = this.ui('EXTRACT');
-    extractButton.style.cssText = `
-      background: var(--interactive-normal);
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 4px;
-      color: var(--text-normal);
-      font-size: 11px;
-      font-weight: 500;
-      cursor: pointer;
-      padding: 6px 8px;
-      width: 100%;
-      text-align: left;
-      transition: background-color 0.2s ease;
-    `;
-    extractButton.addEventListener('mouseenter', () => {
-      extractButton.style.background = 'var(--interactive-hover)';
-    });
-    extractButton.addEventListener('mouseleave', () => {
-      extractButton.style.background = 'var(--interactive-normal)';
-    });
+    extractButton.className = 'cp-localizer-drawer-button';
     extractButton.addEventListener('click', () => {
       this.extractCurrentPluginStrings();
     });
@@ -1360,25 +1243,7 @@ module.exports = class CommunityPluginLocalizerPlugin extends Plugin {
     // 翻訳を貼付ボタン
     const pasteButton = document.createElement('button');
     pasteButton.textContent = this.ui('PASTE');
-    pasteButton.style.cssText = `
-      background: var(--interactive-normal);
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 4px;
-      color: var(--text-normal);
-      font-size: 11px;
-      font-weight: 500;
-      cursor: pointer;
-      padding: 6px 8px;
-      width: 100%;
-      text-align: left;
-      transition: background-color 0.2s ease;
-    `;
-    pasteButton.addEventListener('mouseenter', () => {
-      pasteButton.style.background = 'var(--interactive-hover)';
-    });
-    pasteButton.addEventListener('mouseleave', () => {
-      pasteButton.style.background = 'var(--interactive-normal)';
-    });
+    pasteButton.className = 'cp-localizer-drawer-button';
     pasteButton.addEventListener('click', () => {
       this.pasteCurrentPluginTranslation();
     });
@@ -1386,25 +1251,7 @@ module.exports = class CommunityPluginLocalizerPlugin extends Plugin {
     // 翻訳状態トグルボタン
     const translationToggleButton = document.createElement('button');
     this.updateToggleButtonText(translationToggleButton);
-    translationToggleButton.style.cssText = `
-      background: var(--interactive-normal);
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 4px;
-      color: var(--text-normal);
-      font-size: 11px;
-      font-weight: 500;
-      cursor: pointer;
-      padding: 6px 8px;
-      width: 100%;
-      text-align: left;
-      transition: background-color 0.2s ease;
-    `;
-    translationToggleButton.addEventListener('mouseenter', () => {
-      translationToggleButton.style.background = 'var(--interactive-hover)';
-    });
-    translationToggleButton.addEventListener('mouseleave', () => {
-      translationToggleButton.style.background = 'var(--interactive-normal)';
-    });
+    translationToggleButton.className = 'cp-localizer-drawer-button';
     translationToggleButton.addEventListener('click', async () => {
       this.settings.translationEnabled = !this.settings.translationEnabled;
       await this.saveSettings();
@@ -1415,27 +1262,6 @@ module.exports = class CommunityPluginLocalizerPlugin extends Plugin {
     // 編集ボタン
     const editButton = document.createElement('button');
     editButton.textContent = this.ui('EDIT');
-    editButton.style.cssText = `
-      background: var(--interactive-normal);
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 4px;
-      color: var(--text-normal);
-      font-size: 11px;
-      font-weight: 500;
-      cursor: pointer;
-      padding: 6px 8px;
-      width: 100%;
-      text-align: left;
-      transition: background-color 0.2s ease;
-    `;
-    editButton.addEventListener('mouseenter', () => {
-      if (!editButton.disabled) {
-        editButton.style.background = 'var(--interactive-hover)';
-      }
-    });
-    editButton.addEventListener('mouseleave', () => {
-      editButton.style.background = 'var(--interactive-normal)';
-    });
     editButton.addEventListener('click', () => {
       this.editCurrentPluginTranslation();
     });
@@ -1447,29 +1273,6 @@ module.exports = class CommunityPluginLocalizerPlugin extends Plugin {
     // 削除ボタン
     const deleteButton = document.createElement('button');
     deleteButton.textContent = this.ui('DELETE');
-    deleteButton.style.cssText = `
-      background: var(--interactive-normal);
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 4px;
-      color: var(--text-normal);
-      font-size: 11px;
-      font-weight: 500;
-      cursor: pointer;
-      padding: 6px 8px;
-      width: 100%;
-      text-align: left;
-      transition: background-color 0.2s ease;
-    `;
-    deleteButton.addEventListener('mouseenter', () => {
-      if (!deleteButton.disabled) {
-        deleteButton.style.background = 'var(--color-red)';
-        deleteButton.style.color = 'white';
-      }
-    });
-    deleteButton.addEventListener('mouseleave', () => {
-      deleteButton.style.background = 'var(--interactive-normal)';
-      deleteButton.style.color = 'var(--text-normal)';
-    });
     deleteButton.addEventListener('click', () => {
       this.deleteCurrentPluginTranslation();
     });
@@ -1506,7 +1309,6 @@ module.exports = class CommunityPluginLocalizerPlugin extends Plugin {
         dragStartTimeout = setTimeout(() => {
           isDragging = true;
           toggleButton.classList.add('cp-localizer-dragging');
-          document.body.style.userSelect = 'none';
         }, 500);
         
         // ムーブ・エンドイベントをドキュメントに登録
@@ -1557,6 +1359,7 @@ module.exports = class CommunityPluginLocalizerPlugin extends Plugin {
         // === requestAnimationFrameで描画最適化 ===
         if (!handleMove.rafId) {
           handleMove.rafId = requestAnimationFrame(() => {
+            //動的処理なのでcssに移動できない
             buttonContainer.style.left = this.buttonCurrentPos.x + 'px';
             buttonContainer.style.top = this.buttonCurrentPos.y + 'px';
             buttonContainer.style.right = 'auto';
@@ -1585,7 +1388,7 @@ module.exports = class CommunityPluginLocalizerPlugin extends Plugin {
           // ドラッグ終了処理
           isDragging = false;
           toggleButton.classList.remove('cp-localizer-dragging');
-          document.body.style.userSelect = '';
+          document.body.classList.remove('cp-localizer-body-dragging');
 
           const container = modal.querySelector('.vertical-tab-content-container') || modal;
           
@@ -1599,17 +1402,18 @@ module.exports = class CommunityPluginLocalizerPlugin extends Plugin {
             
             this.updateFloatingButtonStates();
             this.adjustDrawerDirection(buttonContainer, drawerContainer, container);
-            drawerContainer.style.display = 'flex';
+            drawerContainer.classList.remove('display-none', 'hide');
+            drawerContainer.classList.add('display-flex')
             setTimeout(() => {
-              drawerContainer.style.transform = 'translateY(0)';
-              drawerContainer.style.opacity = '1';
+              drawerContainer.classList.add('show');
             }, 10);
             toggleButton.textContent = '✕';
           } else {
-            drawerContainer.style.transform = 'translateY(-10px)';
-            drawerContainer.style.opacity = '0';
+            drawerContainer.classList.remove('show');
+            drawerContainer.classList.add('hide');
             setTimeout(() => {
-              drawerContainer.style.display = 'none';
+              drawerContainer.classList.remove('display-flex')
+              drawerContainer.classList.add('display-none');
             }, 300);
             toggleButton.textContent = '☰';
           }
@@ -1673,6 +1477,7 @@ module.exports = class CommunityPluginLocalizerPlugin extends Plugin {
     const drawerHeight = this.settings.menuLayoutHorizontal ? 60 : 140;
     
     // デフォルト位置をリセット
+    //動的処理なのでcssに移動できない
     drawerContainer.style.top = 'auto';
     drawerContainer.style.bottom = 'auto';
     drawerContainer.style.left = 'auto';
@@ -1963,7 +1768,8 @@ module.exports = class CommunityPluginLocalizerPlugin extends Plugin {
     const currentPlugin = this.getCurrentActivePlugin();
     if (!currentPlugin) {
       editButton.disabled = true;
-      editButton.style.opacity = '0.5';
+      editButton.classList.add('edit-unavailable');
+      editButton.classList.remove('edit-available');
       editButton.textContent = this.ui('EDIT');
       editButton.title = '現在表示中のプラグインを特定できませんでした';
       return;
@@ -1971,7 +1777,13 @@ module.exports = class CommunityPluginLocalizerPlugin extends Plugin {
     
     const hasTranslation = await this.hasExistingTranslation(currentPlugin.id);
     editButton.disabled = !hasTranslation;
-    editButton.style.opacity = hasTranslation ? '1' : '0.5';
+    if (hasTranslation) {
+      editButton.classList.add('edit-available');
+      editButton.classList.remove('edit-unavailable');
+    } else {
+      editButton.classList.add('edit-unavailable');
+      editButton.classList.remove('edit-available');
+    }
     editButton.textContent = this.ui('EDIT');
     editButton.title = hasTranslation ? 
       this.ui('EDIT_AVAILABLE') : 
@@ -1984,7 +1796,8 @@ module.exports = class CommunityPluginLocalizerPlugin extends Plugin {
     const currentPlugin = this.getCurrentActivePlugin();
     if (!currentPlugin) {
       deleteButton.disabled = true;
-      deleteButton.style.opacity = '0.5';
+      deleteButton.classList.add('delete-unavailable');
+      deleteButton.classList.remove('delete-available');
       deleteButton.textContent = this.ui('DELETE');
       deleteButton.title = '現在表示中のプラグインを特定できませんでした';
       return;
@@ -1992,7 +1805,13 @@ module.exports = class CommunityPluginLocalizerPlugin extends Plugin {
     
     const hasTranslation = await this.hasExistingTranslation(currentPlugin.id);
     deleteButton.disabled = !hasTranslation;
-    deleteButton.style.opacity = hasTranslation ? '1' : '0.5';
+    if (hasTranslation) {
+      deleteButton.classList.add('delete-available');
+      deleteButton.classList.remove('delete-unavailable');
+    } else {
+      deleteButton.classList.add('delete-unavailable');
+      deleteButton.classList.remove('delete-available');
+    }
     deleteButton.textContent = this.ui('DELETE');
     deleteButton.title = hasTranslation ? 
       this.ui('DELETE_AVAILABLE') : 
@@ -2612,7 +2431,7 @@ module.exports = class CommunityPluginLocalizerPlugin extends Plugin {
       
       if (current.classList?.contains('cp-localizer-floating-button') ||
           current.classList?.contains('cp-localizer-drawer-container') ||
-          current.classList?.contains('cp-localizer-toggle-button')) {
+          current.classList?.contains('mod-cta')) {
         return true;
       }
     }
@@ -2842,7 +2661,8 @@ module.exports = class CommunityPluginLocalizerPlugin extends Plugin {
     return false;
   }
 
-  // 抽出をスキップすべき要素かどうかを判定
+  // 抽出をスキップすべき要素かどうかを判定✅
+  //スタイル地を読み取る判定ロジック
   shouldSkipElement(element) {
     if (!element || !element.classList) return false;
     
@@ -3433,10 +3253,12 @@ module.exports = class CommunityPluginLocalizerPlugin extends Plugin {
   updateToggleButtonText(button) {
     if (this.settings.translationEnabled) {
       button.textContent = this.ui('TRANSLATION_ON');
-      button.style.opacity = '1';
+      button.classList.add('translation-enabled');
+      button.classList.remove('translation-disabled');
     } else {
       button.textContent = this.ui('TRANSLATION_OFF');
-      button.style.opacity = '0.7';
+      button.classList.add('translation-disabled');
+      button.classList.remove('translation-enabled');
     }
   }
 
@@ -3543,39 +3365,17 @@ class TranslationPreviewModal extends Modal {
 
     // 検索バー
     const searchContainer = contentEl.createDiv();
-    searchContainer.style.cssText = `
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      padding: 8px 12px;
-      background: var(--background-secondary);
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 4px;
-      margin-bottom: 12px;
-    `;
+    searchContainer.className = 'cp-localizer-search-container';
 
     // 検索ボックス
     const searchInput = searchContainer.createEl('input');
     searchInput.type = 'text';
     searchInput.placeholder = this.plugin.modal('SEARCH_PLACEHOLDER');
-    searchInput.style.cssText = `
-      flex: 1;
-      padding: 6px 10px;
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 3px;
-      background: var(--background-primary);
-      font-size: 13px;
-    `;
+    searchInput.className = 'cp-localizer-search-input';
 
     // 検索対象選択
     const targetSelect = searchContainer.createEl('select');
-    targetSelect.style.cssText = `
-      padding: 6px 8px;
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 3px;
-      background: var(--background-primary);
-      font-size: 13px;
-    `;
+    targetSelect.className = 'cp-localizer-search-select';
     [
       { value: 'both', key: 'BOTH' },
       { value: 'original', key: 'ORIGINAL' },
@@ -3588,36 +3388,18 @@ class TranslationPreviewModal extends Modal {
 
     // 検索結果表示
     const searchResultSpan = searchContainer.createEl('span');
-    searchResultSpan.style.cssText = `
-      font-size: 12px;
-      color: var(--text-muted);
-      min-width: 80px;
-    `;
+    searchResultSpan.className = 'cp-localizer-search-result-span';
 
-    // ナビゲーションボタン
+    // ナビゲーションボタン 上下ボタン
     const prevButton = searchContainer.createEl('button');
     prevButton.textContent = '↑';
     prevButton.title = this.plugin.modal('PREVIOUS_RESULT');
-    prevButton.style.cssText = `
-      padding: 4px 8px;
-      background: var(--interactive-normal);
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 3px;
-      cursor: pointer;
-      font-size: 12px;
-    `;
+    prevButton.className = 'cp-localizer-search-button';
 
     const nextButton = searchContainer.createEl('button');
     nextButton.textContent = '↓';
     nextButton.title = this.plugin.modal('NEXT_RESULT');
-    nextButton.style.cssText = `
-      padding: 4px 8px;
-      background: var(--interactive-normal);
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 3px;
-      cursor: pointer;
-      font-size: 12px;
-    `;
+    nextButton.className = 'cp-localizer-search-button';
 
     // 検索イベントリスナー デバウンス適用版
     const performSearch = () => {
@@ -3700,14 +3482,7 @@ class TranslationPreviewModal extends Modal {
 
     // ステータス表示
     const statusDiv = contentEl.createDiv();
-    statusDiv.style.cssText = `
-      padding: 8px 12px;
-      background: var(--background-secondary);
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 4px;
-      margin-bottom: 16px;
-      font-size: 14px;
-    `;
+    statusDiv.className = 'cp-localizer-status-display';
 
     const updateStatus = () => {
       const totalLines = this.originalStrings.length;
@@ -3721,15 +3496,12 @@ class TranslationPreviewModal extends Modal {
       });
       
       saveButton.disabled = !isAllCompleted;
-      saveButton.style.opacity = isAllCompleted ? '1' : '0.5';
       
       // 上矢印ボタンの状態を更新
       this.insertUpButtons.forEach((button, index) => {
         const isCurrentRowEmpty = this.translationInputs[index].value.trim() === '';
         const hasUpwardEmpty = this.findPreviousEmptyLine(index) !== -1;
         button.disabled = isAllCompleted || isCurrentRowEmpty || !hasUpwardEmpty;
-        button.style.opacity = button.disabled ? '0.5' : '1';
-        button.style.cursor = button.disabled ? 'not-allowed' : 'pointer';
         
         if (isAllCompleted) {
           button.title = this.plugin.modal('BUTTON_MOVE_UP_DISABLED_ALL_COMPLETED');
@@ -3748,8 +3520,6 @@ class TranslationPreviewModal extends Modal {
         const hasDownwardEmpty = this.findNextEmptyLine(index) !== -1;
         const isLastRow = index === this.translationInputs.length - 1;
         button.disabled = isAllCompleted || isCurrentRowEmpty || !hasDownwardEmpty || isLastRow;
-        button.style.opacity = button.disabled ? '0.5' : '1';
-        button.style.cursor = button.disabled ? 'not-allowed' : 'pointer';
         
         if (isAllCompleted) {
           button.title = this.plugin.modal('BUTTON_MOVE_DOWN_DISABLED_ALL_COMPLETED');
@@ -3766,68 +3536,28 @@ class TranslationPreviewModal extends Modal {
     };
     this.updateStatus = updateStatus;
 
+    // contentElにflexレイアウトを追加
+    contentEl.className = 'cp-localizer-modal-content';
+
     // スクロール可能なコンテンツエリア
     const scrollContainer = contentEl.createDiv();
-    scrollContainer.style.cssText = `
-      flex: 1;
-      overflow-y: auto;
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 4px;
-      padding: 12px;
-      margin-bottom: 16px;
-      min-height: 200px;
-    `;
-
-    // contentElにflexレイアウトを追加
-    contentEl.style.cssText = `
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      padding: 20px;
-    `;
+    scrollContainer.className = 'cp-localizer-scroll-container';
 
     // 各翻訳行を作成
     this.originalStrings.forEach((originalText, index) => {
       const row = scrollContainer.createDiv();
-      row.style.cssText = `
-        display: grid;
-        grid-template-columns: 40px 30px 1fr 1fr 30px 30px;
-        gap: 8px;
-        margin-bottom: 12px;
-        align-items: start;
-      `;
+      row.className = 'cp-localizer-translation-row';
 
       // 行番号
       const lineNumber = row.createDiv();
       lineNumber.textContent = (index + 1).toString();
-      lineNumber.style.cssText = `
-        text-align: center;
-        font-weight: 500;
-        color: var(--text-muted);
-        padding-top: 8px;
-      `;
-      
+      lineNumber.className = 'cp-localizer-line-number';
+
       // オリジナルテキストコピーボタン
       const copyButton = row.createEl('button');
       copyButton.textContent = '📋';
       copyButton.title = this.plugin.modal('COPY_ORIGINAL_TOOLTIP');
-      copyButton.style.cssText = `
-        padding: 4px;
-        background: var(--interactive-normal);
-        border: 1px solid var(--background-modifier-border);
-        border-radius: 3px;
-        cursor: pointer;
-        font-size: 12px;
-        height: 24px;
-        margin-top: 6px;
-        transition: background-color 0.2s ease;
-      `;
-      copyButton.addEventListener('mouseenter', () => {
-        copyButton.style.background = 'var(--interactive-hover)';
-      });
-      copyButton.addEventListener('mouseleave', () => {
-        copyButton.style.background = 'var(--interactive-normal)';
-      });
+      copyButton.className = 'cp-localizer-copy-button';
       copyButton.addEventListener('click', async () => {
         try {
           await navigator.clipboard.writeText(originalText);
@@ -3844,32 +3574,13 @@ class TranslationPreviewModal extends Modal {
 
       // 元文字列
       const originalDiv = row.createDiv();
-      originalDiv.style.cssText = `
-        padding: 8px 12px;
-        background: var(--background-secondary);
-        border: 1px solid var(--background-modifier-border);
-        border-radius: 4px;
-        font-size: 13px;
-        line-height: 1.4;
-        word-wrap: break-word;
-        max-height: 100px;
-        overflow-y: auto;
-      `;
+      originalDiv.className = 'cp-localizer-original-text';
       originalDiv.textContent = originalText;
 
       // 翻訳入力フィールド
       const translationInput = row.createEl('textarea');
       translationInput.value = this.translatedStrings[index] || '';
-      translationInput.style.cssText = `
-        padding: 8px 12px;
-        background: var(--background-primary);
-        border: 1px solid var(--background-modifier-border);
-        border-radius: 4px;
-        font-size: 13px;
-        line-height: 1.4;
-        min-height: 36px;
-        resize: vertical;
-      `;
+      translationInput.className = 'cp-localizer-translation-input';
 
       const debouncedUpdateStatus = this.plugin.adaptiveDebounce(updateStatus, 200);
       translationInput.addEventListener('input', debouncedUpdateStatus);
@@ -3899,16 +3610,7 @@ class TranslationPreviewModal extends Modal {
       const insertUpButton = row.createEl('button');
       insertUpButton.textContent = '↑';
       insertUpButton.title = this.plugin.modal('MOVE_UP_TOOLTIP');
-      insertUpButton.style.cssText = `
-        padding: 4px;
-        background: var(--interactive-normal);
-        border: 1px solid var(--background-modifier-border);
-        border-radius: 3px;
-        cursor: pointer;
-        font-size: 12px;
-        height: 24px;
-        margin-top: 6px;
-      `;
+      insertUpButton.className = 'cp-localizer-move-button';
       insertUpButton.addEventListener('click', () => this.insertEmptyLineUp(index));
       this.insertUpButtons.push(insertUpButton);
 
@@ -3916,53 +3618,27 @@ class TranslationPreviewModal extends Modal {
       const insertDownButton = row.createEl('button');
       insertDownButton.textContent = '↓';
       insertDownButton.title = this.plugin.modal('MOVE_DOWN_TOOLTIP');
-      insertDownButton.style.cssText = `
-        padding: 4px;
-        background: var(--interactive-normal);
-        border: 1px solid var(--background-modifier-border);
-        border-radius: 3px;
-        cursor: pointer;
-        font-size: 12px;
-        height: 24px;
-        margin-top: 6px;
-      `;
+      insertDownButton.className = 'cp-localizer-move-button';
       insertDownButton.addEventListener('click', () => this.insertEmptyLine(index));
       this.insertButtons.push(insertDownButton);
     });
 
-    // ボタンエリア
+    // 翻訳プレビュー下ボタンエリア
     const buttonArea = contentEl.createDiv();
-    buttonArea.style.cssText = `
-      display: flex;
-      justify-content: flex-end;
-      gap: 12px;
-    `;
+    buttonArea.className = 'cp-localizer-button-area';
 
     // 右側ボタングループ
     const rightButtons = buttonArea.createDiv();
-    rightButtons.style.cssText = `display: flex; gap: 8px;`;
+    rightButtons.className = 'cp-localizer-button-group';
 
     // キャンセルボタン
     const cancelButton = rightButtons.createEl('button', { text: this.plugin.modal('CANCEL') });
-    cancelButton.style.cssText = `
-      padding: 8px 16px;
-      background: var(--interactive-normal);
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 4px;
-      cursor: pointer;
-    `;
+    cancelButton.className = 'cp-localizer-cancel-button';
     cancelButton.addEventListener('click', () => this.close());
 
     // 保存ボタン
     const saveButton = rightButtons.createEl('button', { text: this.plugin.modal('SAVE') });
-    saveButton.style.cssText = `
-      padding: 8px 16px;
-      background: var(--interactive-accent);
-      border: 1px solid var(--interactive-accent);
-      border-radius: 4px;
-      cursor: pointer;
-      color: var(--text-on-accent);
-    `;
+    saveButton.className = 'cp-localizer-save-button';
     
     saveButton.addEventListener('click', async () => {
       const finalTranslatedStrings = this.translationInputs.map(input => this.plugin.customTrim(input.value));
@@ -4135,7 +3811,7 @@ class TranslationPreviewModal extends Modal {
     }
   }
 
-  // 検索表示を更新
+  // 検索表示を更新✅
   updateSearchDisplay(searchResultSpan) {
     const { searchInput, prevButton, nextButton } = this.searchElements;
     
@@ -4143,8 +3819,6 @@ class TranslationPreviewModal extends Modal {
       searchResultSpan.textContent = '';
       prevButton.disabled = true;
       nextButton.disabled = true;
-      prevButton.style.opacity = '0.5';
-      nextButton.style.opacity = '0.5';
       return;
     }
     
@@ -4152,8 +3826,6 @@ class TranslationPreviewModal extends Modal {
       searchResultSpan.textContent = this.plugin.modal('SEARCH_RESULTS_NONE');
       prevButton.disabled = true;
       nextButton.disabled = true;
-      prevButton.style.opacity = '0.5';
-      nextButton.style.opacity = '0.5';
     } else {
       searchResultSpan.textContent = this.plugin.modal('SEARCH_RESULTS_COUNT', {
         current: this.currentSearchIndex + 1,
@@ -4161,35 +3833,30 @@ class TranslationPreviewModal extends Modal {
       });
       prevButton.disabled = false;
       nextButton.disabled = false;
-      prevButton.style.opacity = '1';
-      nextButton.style.opacity = '1';
     }
   }
 
-  // 検索結果をハイライト（枠線 + アイコン版）
+  // 検索結果をハイライト（枠線 + アイコン版）✅
   highlightSearchResults() {
     // 既存のハイライトをクリア
     const allRows = this.modalEl.querySelectorAll('[data-row-index]');
     allRows.forEach(row => {
       // 検索関連のスタイルのみクリア（元々のスタイルは保持）
-      row.style.border = '';
-      row.style.borderRadius = '';
-      row.style.padding = '';
-      row.style.position = '';
+      
       
       // アイコンを削除
       const existingIcon = row.querySelector('.search-result-icon');
       if (existingIcon) {
         existingIcon.remove();
       }
+      row.classList.remove('cp-localizer-search-highlight', 'cp-localizer-search-current');
       
       const originalDiv = row.querySelector('[data-search-type="original"]');
       const translationInput = row.querySelector('[data-search-type="translation"]');
       
       if (originalDiv) {
         // 元々のスタイルを復元
-        originalDiv.style.border = '1px solid var(--background-modifier-border)';
-        originalDiv.style.borderRadius = '4px';
+        originalDiv.classList.remove('cp-localizer-search-element-highlight', 'cp-localizer-search-element-other');
         // テキスト内ハイライトをクリア（innerHTMLを使わない方法）
         const rowIndex = parseInt(row.getAttribute('data-row-index'));
         if (!isNaN(rowIndex) && this.originalStrings[rowIndex]) {
@@ -4199,9 +3866,7 @@ class TranslationPreviewModal extends Modal {
       
       if (translationInput) {
         // 元々のスタイルを復元
-        translationInput.style.border = '1px solid var(--background-modifier-border)';
-        translationInput.style.borderRadius = '4px';
-        translationInput.style.backgroundColor = 'var(--background-primary)';
+        translationInput.classList.remove('cp-localizer-search-element-highlight', 'cp-localizer-search-element-other', 'cp-localizer-search-translation-highlight', 'cp-localizer-search-translation-other');
       }
     });
     
@@ -4216,61 +3881,34 @@ class TranslationPreviewModal extends Modal {
         const isCurrent = searchIndex === this.currentSearchIndex;
         
         // 枠線スタイル
-        const borderColor = isCurrent ? 
-          'var(--interactive-accent)' : 
-          'var(--color-yellow)';
-        const borderWidth = isCurrent ? '3px' : '2px';
-        
-        row.style.border = `${borderWidth} solid ${borderColor}`;
-        row.style.borderRadius = '6px';
-        row.style.padding = '8px';
+        if (isCurrent) {
+          row.classList.add('cp-localizer-search-current');
+        } else {
+          row.classList.add('cp-localizer-search-highlight');
+        }
         
         // アイコンを追加
         const iconSpan = row.createEl('span');
         iconSpan.className = 'search-result-icon';
-        iconSpan.textContent = isCurrent ? '🎯' : '🔍';
-        iconSpan.style.cssText = `
-          position: absolute;
-          top: -8px;
-          right: -8px;
-          background: ${borderColor};
-          color: white;
-          border-radius: 50%;
-          width: 20px;
-          height: 20px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 10px;
-          z-index: 10;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        `;
-        
-        // 行を相対位置に設定（アイコンの絶対位置のため）
-        row.style.position = 'relative';
+        iconSpan.className = `search-result-icon cp-localizer-search-icon ${isCurrent ? 'current-icon' : 'other-icon'}`;
         
         // 個別要素の枠線
         const originalDiv = row.querySelector('[data-search-type="original"]');
         const translationInput = row.querySelector('[data-search-type="translation"]');
 
         if (this.searchTarget === 'original' || this.searchTarget === 'both') {
+          //（originalDiv個別ハイライト）
           if (originalDiv && this.originalStrings[rowIndex].toLowerCase().includes(this.searchTerm)) {
-            originalDiv.style.border = `1px solid ${borderColor}`;
-            originalDiv.style.borderRadius = '4px';
-            // テキスト内ハイライトを適用
+            originalDiv.classList.add(isCurrent ? 'cp-localizer-search-element-highlight' : 'cp-localizer-search-element-other');
             this.highlightTextContent(originalDiv, this.originalStrings[rowIndex], isCurrent);
           }
         }
 
         if (this.searchTarget === 'translation' || this.searchTarget === 'both') {
+          //（translationInput個別ハイライト）
           if (translationInput && translationInput.value.toLowerCase().includes(this.searchTerm)) {
-            translationInput.style.border = `1px solid ${borderColor}`;
-            translationInput.style.borderRadius = '4px';
-            // 翻訳フィールドは入力要素なので、背景色でハイライト
-            const highlightColor = isCurrent ? 
-              'rgba(var(--interactive-accent-rgb), 0.1)' : 
-              'rgba(241, 196, 15, 0.1)';
-            translationInput.style.backgroundColor = highlightColor;
+            translationInput.classList.add(isCurrent ? 'cp-localizer-search-element-highlight' : 'cp-localizer-search-element-other');
+            translationInput.classList.add(isCurrent ? 'cp-localizer-search-translation-highlight' : 'cp-localizer-search-translation-other');
           }
         }
       }
@@ -4291,7 +3929,7 @@ class TranslationPreviewModal extends Modal {
       }
     }
   }
-  // テキスト内の検索文字列をハイライト
+  // テキスト内の検索文字列をハイライト✅
   highlightTextContent(element, text, isCurrentResult) {
     element.empty();
     this.createHighlightedContent(element, text, this.searchTerm, isCurrentResult);
@@ -4342,11 +3980,6 @@ class TranslationPreviewModal extends Modal {
     this.searchResults = [];
     this.currentSearchIndex = -1;
     this.searchTerm = '';
-    // 検索用スタイルを削除
-    const searchStyles = document.querySelector('#translation-modal-search-styles');
-    if (searchStyles) {
-      searchStyles.remove();
-    }
   }
 
   setupModalResize() {
@@ -4356,34 +3989,13 @@ class TranslationPreviewModal extends Modal {
     const savedSize = this.plugin.settings.translationPreviewSize;
     modal.style.width = savedSize.width + 'px';
     modal.style.height = savedSize.height + 'px';
-    modal.style.maxWidth = 'none';
-    modal.style.maxHeight = 'none';
-    modal.style.minWidth = '400px';
-    modal.style.minHeight = '300px';
-    modal.style.resize = 'none'; // CSSのresizeを無効化
+    modal.classList.add('cp-localizer-modal-resizable');
     
     // リサイズハンドルを作成
     const resizeHandle = modal.createDiv();
     resizeHandle.className = 'translation-modal-resize-handle';
     resizeHandle.textContent = '⋰';
-    resizeHandle.style.cssText = `
-      position: absolute;
-      bottom: 0;
-      right: 0;
-      width: 20px;
-      height: 20px;
-      cursor: nw-resize;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      color: var(--text-muted);
-      background: var(--background-primary);
-      border-left: 1px solid var(--background-modifier-border);
-      border-top: 1px solid var(--background-modifier-border);
-      user-select: none;
-      transition: color 0.2s ease;
-    `;
+    resizeHandle.className = 'cp-localizer-resize-handle';
     
     // リサイズ機能の実装
     let isResizing = false;
@@ -4397,15 +4009,16 @@ class TranslationPreviewModal extends Modal {
       startY = e.clientY;
       startWidth = parseInt(window.getComputedStyle(modal, null).getPropertyValue('width'));
       startHeight = parseInt(window.getComputedStyle(modal, null).getPropertyValue('height'));
-      
-      document.body.style.cursor = 'nw-resize';
-      document.body.style.userSelect = 'none';
+      const computedStyle = getComputedStyle(modal);
+      const minWidth = parseInt(computedStyle.minWidth);
+      const minHeight = parseInt(computedStyle.minHeight);
+      document.body.classList.add('cp-localizer-body-dragging');
       
       const handleMouseMove = (e) => {
         if (!isResizing) return;
         
-        const width = Math.max(400, startWidth + (e.clientX - startX));
-        const height = Math.max(300, startHeight + (e.clientY - startY));
+        const width = Math.max(minWidth, startWidth + (e.clientX - startX));
+        const height = Math.max(minHeight, startHeight + (e.clientY - startY));
         
         modal.style.width = width + 'px';
         modal.style.height = height + 'px';
@@ -4414,8 +4027,7 @@ class TranslationPreviewModal extends Modal {
       const handleMouseUp = () => {
         if (isResizing) {
           isResizing = false;
-          document.body.style.cursor = '';
-          document.body.style.userSelect = '';
+          document.body.classList.remove('cp-localizer-body-dragging');
           
           // サイズを保存
           const finalWidth = parseInt(modal.style.width);
@@ -4434,57 +4046,6 @@ class TranslationPreviewModal extends Modal {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
     });
-
-    // 検索ハイライト用のスタイルを追加
-    if (!document.querySelector('#translation-modal-search-styles')) {
-      const searchStyles = document.createElement('style');
-      searchStyles.id = 'translation-modal-search-styles';
-      searchStyles.textContent = `
-        .search-result-icon {
-          animation: searchPulse 1s ease-in-out infinite alternate;
-        }
-        
-        @keyframes searchPulse {
-          0% { transform: scale(1); }
-          100% { transform: scale(1.1); }
-        }
-        
-        /* 黄色の定義（テーマに依存しない） */
-        :root {
-          --color-yellow: #f1c40f;
-        }
-        
-        /* ダークテーマでの調整 */
-        .theme-dark {
-          --color-yellow: #f39c12;
-        }
-        /* テキスト内ハイライト用スタイル */
-        .search-highlight-current {
-          background-color: var(--interactive-accent) !important;
-          color: white !important;
-          padding: 1px 2px;
-          border-radius: 2px;
-          font-weight: bold;
-          animation: textHighlightPulse 1.5s ease-in-out infinite alternate;
-        }
-        
-        .search-highlight-other {
-          background-color: var(--color-yellow) !important;
-          color: black !important;
-          padding: 1px 2px;
-          border-radius: 2px;
-          font-weight: 500;
-        }
-        
-        @keyframes textHighlightPulse {
-          0% { box-shadow: 0 0 2px var(--interactive-accent); }
-          100% { box-shadow: 0 0 6px var(--interactive-accent); }
-        }
-      `;
-      document.head.appendChild(searchStyles);
-    }
-
-
   }
 }
 
@@ -4500,12 +4061,7 @@ class ChunkManagementModal extends Modal {
     const { contentEl } = this;
     contentEl.empty();
     // ===== Flexboxレイアウト設定 =====
-    contentEl.style.cssText = `
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      padding: 20px;
-    `;
+    contentEl.className = 'cp-localizer-modal-content';
     // モーダルタイトル
     contentEl.createEl('h2', { text: this.plugin.modal('CHUNK_MANAGEMENT_TITLE', { pluginName: this.chunkData.pluginName }) });
     // サイズ拡縮機能を追加
@@ -4513,14 +4069,7 @@ class ChunkManagementModal extends Modal {
 
     // 統計情報
     const statsDiv = contentEl.createDiv();
-    statsDiv.className = 'stats-div';  
-    statsDiv.style.cssText = `
-      padding: 12px 16px;
-      background: var(--background-secondary);
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 6px;
-      margin-bottom: 16px;
-    `;
+    statsDiv.className = 'stats-div cp-localizer-stats-display';
     
     const totalChunks = this.chunkData.chunks.length;
     const completedChunks = this.chunkData.chunks.filter(c => c.status === 'completed').length;
@@ -4537,21 +4086,13 @@ class ChunkManagementModal extends Modal {
         progressIndicator: this.getProgressIndicator(completedChunks, totalChunks),
         completedChunks: completedChunks,
         totalChunks: totalChunks
-      }),
-      attr: { style: 'margin-top: 4px;' }
+      })
     });
+    statsLine2.className = 'cp-localizer-stats-line';
 
     // スクロール可能なチャンクリスト
     const scrollContainer = contentEl.createDiv();
-    scrollContainer.style.cssText = `
-      flex: 1;
-      overflow-y: auto;
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 4px;
-      padding: 12px;
-      margin-bottom: 16px;
-      min-height: 200px;
-    `;
+    scrollContainer.className = 'cp-localizer-scroll-container';
 
     // 各チャンクを表示
     this.chunkData.chunks.forEach((chunk, index) => {
@@ -4560,46 +4101,21 @@ class ChunkManagementModal extends Modal {
 
     // ステータスメッセージ
     this.statusMessageEl = contentEl.createDiv();
-    this.statusMessageEl.style.cssText = `
-      padding: 12px 16px;
-      margin-bottom: 16px;
-      background: var(--background-secondary);
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 6px;
-      font-size: 14px;
-      line-height: 1.4;
-    `;
+    this.statusMessageEl.className = 'cp-localizer-status-message';
     this.updateStatusMessage();
 
     // ボタンエリア
     const buttonArea = contentEl.createDiv();
-    buttonArea.style.cssText = `
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-    `;
+    buttonArea.className = 'cp-localizer-button-area-between';
 
     // 翻訳プレビューへ移動ボタン
     this.previewButton = buttonArea.createEl('button', { text: this.plugin.modal('MOVE_TO_PREVIEW') });
-    this.previewButton.style.cssText = `
-      padding: 8px 16px;
-      background: var(--interactive-accent);
-      border: 1px solid var(--interactive-accent);
-      border-radius: 4px;
-      cursor: pointer;
-      color: var(--text-on-accent);
-    `;
+    this.previewButton.className = 'cp-localizer-go-to-transprev-button';
     this.previewButton.addEventListener('click', () => this.openTranslationPreview());
 
     // 閉じるボタン
     const closeButton = buttonArea.createEl('button', { text: this.plugin.modal('CLOSE') });
-    closeButton.style.cssText = `
-      padding: 8px 16px;
-      background: var(--interactive-normal);
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 4px;
-      cursor: pointer;
-    `;
+    closeButton.className = 'cp-localizer-chunk-management-cancel-button';
     closeButton.addEventListener('click', () => this.close());
 
     this.updatePreviewButtonState();
@@ -4607,25 +4123,11 @@ class ChunkManagementModal extends Modal {
 
   createChunkElement(container, chunk, index) {
     const chunkDiv = container.createDiv();
-    chunkDiv.className = 'chunk-element';
-    chunkDiv.style.cssText = `
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 6px;
-      padding: 12px;
-      margin-bottom: 12px;
-      background: var(--background-primary);
-    `;
+    chunkDiv.className = 'cp-localizer-chunk-element';
 
     // チャンク情報
     const headerDiv = chunkDiv.createDiv();
-    headerDiv.className = 'chunk-header';
-    headerDiv.style.cssText = `
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      font-weight: 500;
-    `;
+    headerDiv.className = 'cp-localizer-chunk-header';
     
     const statusDisplay = this.getChunkStatusDisplay(chunk);
     const statusIcon = statusDisplay.icon;
@@ -4637,24 +4139,14 @@ class ChunkManagementModal extends Modal {
       characterCount: chunk.characterCount 
     }) + ' ');
     const statusSpan = mainSpan.createEl('span', {
-      text: `${statusIcon} ${statusText}`,
-      attr: { style: `color: ${statusDisplay.color}` }
+      text: `${statusIcon} ${statusText}`
     });
+    statusSpan.className = 'cp-localizer-chunk-status';
+    statusSpan.setAttribute('data-status', chunk.status);
 
     // プレビューテキスト
     const previewDiv = chunkDiv.createDiv();
-    previewDiv.className = 'chunk-preview';
-    previewDiv.style.cssText = `
-      background: var(--background-secondary);
-      padding: 8px 12px;
-      border-radius: 4px;
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-bottom: 12px;
-      max-height: 60px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    `;
+    previewDiv.className = 'cp-localizer-chunk-preview';
     
     const previewText = chunk.status === 'completed' && chunk.translatedStrings.length > 0
       ? chunk.translatedStrings.slice(0, 3).join(', ') + '...'
@@ -4663,51 +4155,29 @@ class ChunkManagementModal extends Modal {
 
     // ボタンエリア
     const buttonDiv = chunkDiv.createDiv();
-    buttonDiv.style.cssText = `
-      display: flex;
-      gap: 8px;
-    `;
+    buttonDiv.className = 'cp-localizer-chunk-buttons';
 
     // コピーボタン
     const copyButton = buttonDiv.createEl('button', { text: this.plugin.modal('COPY_CHUNK') });
-    copyButton.style.cssText = this.getButtonStyle();
+    copyButton.className = 'cp-localizer-chunk-button';
     copyButton.addEventListener('click', () => this.copyChunk(chunk));
 
     // 貼付ボタン
     const pasteButton = buttonDiv.createEl('button', { text: this.plugin.modal('PASTE_CHUNK') });
 
-    pasteButton.style.cssText = this.getButtonStyle();
+    pasteButton.className = 'cp-localizer-chunk-button';
     pasteButton.addEventListener('click', () => this.pasteChunk(chunk));
 
     // 編集ボタン
     const editButton = buttonDiv.createEl('button', { text: this.plugin.modal('EDIT_CHUNK') });
-    editButton.className = 'edit-button';
-    editButton.style.cssText = this.getButtonStyle();
+    editButton.className = 'cp-localizer-chunk-edit-button';
     editButton.disabled = chunk.status === 'pending';
-    if (chunk.status === 'pending') {
-      editButton.style.opacity = '0.5';
-      editButton.style.cursor = 'not-allowed';
-      editButton.title = this.plugin.modal('EDIT_CHUNK_PENDING');
-    } else {
-      editButton.style.opacity = '1';
-      editButton.style.cursor = 'pointer';
-      editButton.title = chunk.status === 'mismatch' ? 
+    editButton.title = chunk.status === 'pending' ? 
+      this.plugin.modal('EDIT_CHUNK_PENDING') :
+      (chunk.status === 'mismatch' ? 
         this.plugin.modal('EDIT_CHUNK_MISMATCH') : 
-        this.plugin.modal('EDIT_CHUNK_NORMAL');
-    }
+        this.plugin.modal('EDIT_CHUNK_NORMAL'));
     editButton.addEventListener('click', () => this.editChunk(chunk));
-  }
-
-  getButtonStyle() {
-    return `
-      padding: 6px 12px;
-      background: var(--interactive-normal);
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
-      transition: background-color 0.2s ease;
-    `;
   }
 
   getProgressIndicator(completed, total) {
@@ -4725,6 +4195,7 @@ class ChunkManagementModal extends Modal {
     return `[${indicators.join('')}]`;
   }
 
+  //下側ステータスメッセージの変化
   updateStatusMessage() {
     const totalChunks = this.chunkData.chunks.length;
     const completedChunks = this.chunkData.chunks.filter(c => c.status === 'completed').length;
@@ -4733,21 +4204,19 @@ class ChunkManagementModal extends Modal {
     this.statusMessageEl.empty();
 
     if (mismatchChunks > 0) {
-      const errorDiv = this.statusMessageEl.createEl('div', {
-        attr: { style: 'color: var(--text-error);' }
-      });
+      const errorDiv = this.statusMessageEl.createEl('div');
+      errorDiv.className = 'cp-localizer-status-error';
       errorDiv.appendText(this.plugin.modal('STATUS_MISMATCH_ERROR', { mismatchChunks: mismatchChunks }));
       errorDiv.createEl('br');
       errorDiv.appendText(this.plugin.modal('STATUS_MISMATCH_INSTRUCTION'));
     } else if (completedChunks === 0) {
-      this.statusMessageEl.createEl('div', {
-        text: this.plugin.modal('STATUS_NO_TRANSLATION'),
-        attr: { style: 'color: var(--text-muted);' }
+      const mutedDiv = this.statusMessageEl.createEl('div', {
+        text: this.plugin.modal('STATUS_NO_TRANSLATION')
       });
+      mutedDiv.className = 'cp-localizer-status-muted';
     } else if (completedChunks < totalChunks) {
-      const progressDiv = this.statusMessageEl.createEl('div', {
-        attr: { style: 'color: var(--text-accent);' }
-      });
+      const progressDiv = this.statusMessageEl.createEl('div');
+      progressDiv.className = 'cp-localizer-status-accent';
       progressDiv.appendText(this.plugin.modal('STATUS_IN_PROGRESS', { 
         completedChunks: completedChunks, 
         totalChunks: totalChunks 
@@ -4757,9 +4226,8 @@ class ChunkManagementModal extends Modal {
         remainingChunks: totalChunks - completedChunks 
       }));
     } else {
-      const successDiv = this.statusMessageEl.createEl('div', {
-        attr: { style: 'color: var(--text-success);' }
-      });
+      const successDiv = this.statusMessageEl.createEl('div');
+      successDiv.className = 'cp-localizer-status-success';
       successDiv.appendText(this.plugin.modal('STATUS_ALL_COMPLETED'));
       successDiv.createEl('br');
       successDiv.appendText(this.plugin.modal('STATUS_ALL_COMPLETED_INSTRUCTION1'));
@@ -4767,13 +4235,12 @@ class ChunkManagementModal extends Modal {
       successDiv.appendText(this.plugin.modal('STATUS_ALL_COMPLETED_INSTRUCTION2'));
     }
   }
-
+  /*updatePreviewButtonState　翻訳プレビューへ移動ボタンのON or OFF*/
   updatePreviewButtonState() {
     const allCompleted = this.chunkData.chunks.every(c => c.status === 'completed');
     const hasMismatch = this.chunkData.chunks.some(c => c.status === 'mismatch');
     
     this.previewButton.disabled = !allCompleted;
-    this.previewButton.style.opacity = allCompleted ? '1' : '0.5';
     
     if (hasMismatch) {
       this.previewButton.title = this.plugin.modal('PREVIEW_DISABLED_MISMATCH');
@@ -4788,98 +4255,90 @@ class ChunkManagementModal extends Modal {
       case 'completed':
         return { 
           icon: '[●]', 
-          text: this.plugin.modal('TRANSLATION_COMPLETED'), 
-          color: 'var(--text-success)' 
+          text: this.plugin.modal('TRANSLATION_COMPLETED')
         };
       case 'mismatch':
         return { 
           icon: '[!]', 
-          text: this.plugin.modal('LINE_MISMATCH'), 
-          color: 'var(--text-error)' 
+          text: this.plugin.modal('LINE_MISMATCH')
         };
       case 'pending':
       default:
         return { 
           icon: '[○]', 
-          text: this.plugin.modal('UNTRANSLATED'), 
-          color: 'var(--text-muted)' 
+          text: this.plugin.modal('UNTRANSLATED')
         };
     }
   }
 
-    updateHeaderStats() {
-      const statsDiv = this.contentEl.querySelector('.stats-div');
-      if (!statsDiv) return;
-      
-      const totalChunks = this.chunkData.chunks.length;
-      const completedChunks = this.chunkData.chunks.filter(c => c.status === 'completed').length;
-      
-      statsDiv.empty();
-      const statsLine1 = statsDiv.createEl('div', {
-        text: this.plugin.modal('STATS_TOTAL_CHARS', { 
-          totalCharacters: this.chunkData.totalCharacters, 
-          totalChunks: totalChunks 
-        })
-      });
-      const statsLine2 = statsDiv.createEl('div', {
-        text: this.plugin.modal('STATS_TRANSLATION_STATUS', { 
-          progressIndicator: this.getProgressIndicator(completedChunks, totalChunks),
-          completedChunks: completedChunks,
-          totalChunks: totalChunks
-        }),
-        attr: { style: 'margin-top: 4px;' }
-      });
-    }
+  updateHeaderStats() {
+    const statsDiv = this.contentEl.querySelector('.stats-div');
+    if (!statsDiv) return;
+    
+    const totalChunks = this.chunkData.chunks.length;
+    const completedChunks = this.chunkData.chunks.filter(c => c.status === 'completed').length;
+    
+    statsDiv.empty();
+    const statsLine1 = statsDiv.createEl('div', {
+      text: this.plugin.modal('STATS_TOTAL_CHARS', { 
+        totalCharacters: this.chunkData.totalCharacters, 
+        totalChunks: totalChunks 
+      })
+    });
+    const statsLine2 = statsDiv.createEl('div', {
+      text: this.plugin.modal('STATS_TRANSLATION_STATUS', { 
+        progressIndicator: this.getProgressIndicator(completedChunks, totalChunks),
+        completedChunks: completedChunks,
+        totalChunks: totalChunks
+      })
+    });
+    statsLine2.className = 'cp-localizer-stats-line';
+  }
 
-    updateChunkElement(chunk) {
-      const chunkElements = this.contentEl.querySelectorAll('.chunk-element');
-      const chunkIndex = this.chunkData.chunks.findIndex(c => c.id === chunk.id);
-      const chunkElement = chunkElements[chunkIndex];
-      
-      if (!chunkElement) return;
-      
-      // ステータス表示を更新
-      const statusDisplay = this.getChunkStatusDisplay(chunk);
-      const headerDiv = chunkElement.querySelector('.chunk-header');
-      if (headerDiv) {
-        headerDiv.empty();
-        const mainSpan = headerDiv.createEl('span');
-        mainSpan.appendText(this.plugin.modal('CHUNK_HEADER', { 
-          chunkId: chunk.id, 
-          characterCount: chunk.characterCount 
-        }) + ' ');
-        const statusSpan = mainSpan.createEl('span', {
-          text: `${statusDisplay.icon} ${statusDisplay.text}`,
-          attr: { style: `color: ${statusDisplay.color}` }
-        });
-      }
-      
-      // プレビューテキストを更新
-      const previewDiv = chunkElement.querySelector('.chunk-preview');
-      if (previewDiv) {
-        const previewText = chunk.status === 'completed' && chunk.translatedStrings.length > 0
-          ? chunk.translatedStrings.slice(0, 3).join(', ') + '...'
-          : chunk.strings.slice(0, 3).join(', ') + '...';
-        previewDiv.textContent = previewText;
-      }
-      
-      // 編集ボタンの状態を更新
-      const editButton = chunkElement.querySelector('.edit-button');
-      if (editButton) {
-        editButton.disabled = chunk.status === 'pending';
-        if (chunk.status === 'pending') {
-          editButton.style.opacity = '0.5';
-          editButton.style.cursor = 'not-allowed';
-          editButton.title = this.plugin.modal('EDIT_CHUNK_PENDING');
-        } else {
-          editButton.style.opacity = '1';
-          editButton.style.cursor = 'pointer';
-          editButton.title = chunk.status === 'mismatch' ? 
-            this.plugin.modal('EDIT_CHUNK_MISMATCH') : 
-            this.plugin.modal('EDIT_CHUNK_NORMAL');
-        }
-      }
+  updateChunkElement(chunk) {
+    const chunkElements = this.contentEl.querySelectorAll('.cp-localizer-chunk-element');
+    const chunkIndex = this.chunkData.chunks.findIndex(c => c.id === chunk.id);
+    const chunkElement = chunkElements[chunkIndex];
+    
+    if (!chunkElement) return;
+    
+    // ステータス表示を更新
+    const statusDisplay = this.getChunkStatusDisplay(chunk);
+    const headerDiv = chunkElement.querySelector('.cp-localizer-chunk-header');
+    if (headerDiv) {
+      headerDiv.empty();
+      const mainSpan = headerDiv.createEl('span');
+      mainSpan.appendText(this.plugin.modal('CHUNK_HEADER', { 
+        chunkId: chunk.id, 
+        characterCount: chunk.characterCount 
+      }) + ' ');
+      const statusSpan = mainSpan.createEl('span', {
+        text: `${statusDisplay.icon} ${statusDisplay.text}`
+      });
+      statusSpan.className = 'cp-localizer-chunk-status';
+      statusSpan.setAttribute('data-status', chunk.status);
     }
+    
+    // プレビューテキストを更新
+    const previewDiv = chunkElement.querySelector('.cp-localizer-chunk-preview');
+    if (previewDiv) {
+      const previewText = chunk.status === 'completed' && chunk.translatedStrings.length > 0
+        ? chunk.translatedStrings.slice(0, 3).join(', ') + '...'
+        : chunk.strings.slice(0, 3).join(', ') + '...';
+      previewDiv.textContent = previewText;
+    }
+    
+    // 編集ボタンの状態を更新
+    const editButton = chunkElement.querySelector('.cp-localizer-chunk-edit-button');
+    if (editButton) {
+      editButton.disabled = chunk.status === 'pending';
+      editButton.title = chunk.status === 'pending' ? 
+        this.plugin.modal('EDIT_CHUNK_PENDING') :
+        (chunk.status === 'mismatch' ? 
+          this.plugin.modal('EDIT_CHUNK_MISMATCH') : 
+          this.plugin.modal('EDIT_CHUNK_NORMAL'));
+    }
+  }
 
   async copyChunk(chunk) {
     try {
@@ -4995,34 +4454,11 @@ class ChunkManagementModal extends Modal {
     const savedSize = this.plugin.settings.chunkManagementSize;
     modal.style.width = savedSize.width + 'px';
     modal.style.height = savedSize.height + 'px';
-    modal.style.maxWidth = 'none';
-    modal.style.maxHeight = 'none';
-    modal.style.minWidth = '600px';
-    modal.style.minHeight = '400px';
-    modal.style.resize = 'none';
-    
+    modal.classList.add('cp-localizer-chunk-modal-resizable');
     // リサイズハンドルを作成
     const resizeHandle = modal.createDiv();
-    resizeHandle.className = 'chunk-modal-resize-handle';
     resizeHandle.textContent = '⋰';
-    resizeHandle.style.cssText = `
-      position: absolute;
-      bottom: 0;
-      right: 0;
-      width: 20px;
-      height: 20px;
-      cursor: nw-resize;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      color: var(--text-muted);
-      background: var(--background-primary);
-      border-left: 1px solid var(--background-modifier-border);
-      border-top: 1px solid var(--background-modifier-border);
-      user-select: none;
-      transition: color 0.2s ease;
-    `;
+    resizeHandle.className = 'cp-localizer-resize-handle';
     
     // リサイズ機能の実装
     let isResizing = false;
@@ -5036,15 +4472,16 @@ class ChunkManagementModal extends Modal {
       startY = e.clientY;
       startWidth = parseInt(window.getComputedStyle(modal, null).getPropertyValue('width'));
       startHeight = parseInt(window.getComputedStyle(modal, null).getPropertyValue('height'));
-      
-      document.body.style.cursor = 'nw-resize';
-      document.body.style.userSelect = 'none';
+      const computedStyle = getComputedStyle(modal);
+      const minWidth = parseInt(computedStyle.minWidth);
+      const minHeight = parseInt(computedStyle.minHeight);
+      document.body.classList.add('cp-localizer-body-dragging');
       
       const handleMouseMove = (e) => {
         if (!isResizing) return;
         
-        const width = Math.max(600, startWidth + (e.clientX - startX));
-        const height = Math.max(400, startHeight + (e.clientY - startY));
+        const width = Math.max(minWidth, startWidth + (e.clientX - startX));
+        const height = Math.max(minHeight, startHeight + (e.clientY - startY));
         
         modal.style.width = width + 'px';
         modal.style.height = height + 'px';
@@ -5053,8 +4490,7 @@ class ChunkManagementModal extends Modal {
       const handleMouseUp = () => {
         if (isResizing) {
           isResizing = false;
-          document.body.style.cursor = '';
-          document.body.style.userSelect = '';
+          document.body.classList.remove('cp-localizer-body-dragging');
           
           // サイズを保存
           const finalWidth = parseInt(modal.style.width);
@@ -5094,20 +4530,13 @@ class ChunkEditModal extends Modal {
 
     // モーダルタイトル
     contentEl.createEl('h2', { text: this.plugin.modal('CHUNK_EDIT_TITLE', { chunkId: this.chunk.id }) });
-
+    contentEl.className = 'cp-localizer-modal-content';
     // サイズ拡縮機能を追加
     this.setupModalResize();
 
     // ステータス表示
     const statusDiv = contentEl.createDiv();
-    statusDiv.style.cssText = `
-      padding: 8px 12px;
-      background: var(--background-secondary);
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 4px;
-      margin-bottom: 16px;
-      font-size: 14px;
-    `;
+    statusDiv.className = 'cp-localizer-status-display';
 
     const updateStatus = () => {
       const totalLines = this.chunk.strings.length;
@@ -5121,15 +4550,12 @@ class ChunkEditModal extends Modal {
       });
       
       saveButton.disabled = !isAllCompleted;
-      saveButton.style.opacity = isAllCompleted ? '1' : '0.5';
       
       // 上矢印ボタンの状態を更新
       this.insertUpButtons.forEach((button, index) => {
         const isCurrentRowEmpty = this.translationInputs[index].value.trim() === '';
         const hasUpwardEmpty = this.findPreviousEmptyLine(index) !== -1;
         button.disabled = isAllCompleted || isCurrentRowEmpty || !hasUpwardEmpty;
-        button.style.opacity = button.disabled ? '0.5' : '1';
-        button.style.cursor = button.disabled ? 'not-allowed' : 'pointer';
         
         if (isAllCompleted) {
           button.title = this.plugin.modal('BUTTON_MOVE_UP_DISABLED_ALL_COMPLETED');
@@ -5148,8 +4574,6 @@ class ChunkEditModal extends Modal {
         const hasDownwardEmpty = this.findNextEmptyLine(index) !== -1;
         const isLastRow = index === this.translationInputs.length - 1;
         button.disabled = isAllCompleted || isCurrentRowEmpty || !hasDownwardEmpty || isLastRow;
-        button.style.opacity = button.disabled ? '0.5' : '1';
-        button.style.cursor = button.disabled ? 'not-allowed' : 'pointer';
         
         if (isAllCompleted) {
           button.title = this.plugin.modal('BUTTON_MOVE_DOWN_DISABLED_ALL_COMPLETED');
@@ -5168,66 +4592,24 @@ class ChunkEditModal extends Modal {
 
     // スクロール可能なコンテンツエリア
     const scrollContainer = contentEl.createDiv();
-    scrollContainer.style.cssText = `
-      flex: 1;
-      overflow-y: auto;
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 4px;
-      padding: 12px;
-      margin-bottom: 16px;
-      min-height: 200px;
-    `;
-
-    // contentElにflexレイアウトを追加
-    contentEl.style.cssText = `
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      padding: 20px;
-    `;
+    scrollContainer.className = 'cp-localizer-scroll-container';
 
     // 各翻訳行を作成
     this.chunk.strings.forEach((originalText, index) => {
       const row = scrollContainer.createDiv();
-      row.style.cssText = `
-        display: grid;
-        grid-template-columns: 40px 30px 1fr 1fr 30px 30px;
-        gap: 8px;
-        margin-bottom: 12px;
-        align-items: start;
-      `;
+      row.className = 'cp-localizer-translation-row';
+
 
       // 行番号
       const lineNumber = row.createDiv();
       lineNumber.textContent = (index + 1).toString();
-      lineNumber.style.cssText = `
-        text-align: center;
-        font-weight: 500;
-        color: var(--text-muted);
-        padding-top: 8px;
-      `;
+      lineNumber.className = 'cp-localizer-line-number';
       
       // オリジナルテキストコピーボタン
       const copyButton = row.createEl('button');
       copyButton.textContent = '📋';
       copyButton.title = this.plugin.modal('COPY_ORIGINAL_TOOLTIP');
-      copyButton.style.cssText = `
-        padding: 4px;
-        background: var(--interactive-normal);
-        border: 1px solid var(--background-modifier-border);
-        border-radius: 3px;
-        cursor: pointer;
-        font-size: 12px;
-        height: 24px;
-        margin-top: 6px;
-        transition: background-color 0.2s ease;
-      `;
-      copyButton.addEventListener('mouseenter', () => {
-        copyButton.style.background = 'var(--interactive-hover)';
-      });
-      copyButton.addEventListener('mouseleave', () => {
-        copyButton.style.background = 'var(--interactive-normal)';
-      });
+      copyButton.className = 'cp-localizer-copy-button';
       copyButton.addEventListener('click', async () => {
         try {
           await navigator.clipboard.writeText(originalText);
@@ -5244,32 +4626,13 @@ class ChunkEditModal extends Modal {
 
       // 元文字列
       const originalDiv = row.createDiv();
-      originalDiv.style.cssText = `
-        padding: 8px 12px;
-        background: var(--background-secondary);
-        border: 1px solid var(--background-modifier-border);
-        border-radius: 4px;
-        font-size: 13px;
-        line-height: 1.4;
-        word-wrap: break-word;
-        max-height: 100px;
-        overflow-y: auto;
-      `;
+      originalDiv.className = 'cp-localizer-original-text';
       originalDiv.textContent = originalText;
 
       // 翻訳入力フィールド
       const translationInput = row.createEl('textarea');
       translationInput.value = this.chunk.translatedStrings[index] || '';
-      translationInput.style.cssText = `
-        padding: 8px 12px;
-        background: var(--background-primary);
-        border: 1px solid var(--background-modifier-border);
-        border-radius: 4px;
-        font-size: 13px;
-        line-height: 1.4;
-        min-height: 36px;
-        resize: vertical;
-      `;
+      translationInput.className = 'cp-localizer-translation-input';
 
       const debouncedUpdateStatus = this.plugin.adaptiveDebounce(updateStatus, 200);
       translationInput.addEventListener('input', debouncedUpdateStatus);
@@ -5279,16 +4642,7 @@ class ChunkEditModal extends Modal {
       const insertUpButton = row.createEl('button');
       insertUpButton.textContent = '↑';
       insertUpButton.title = this.plugin.modal('MOVE_UP_TOOLTIP');
-      insertUpButton.style.cssText = `
-        padding: 4px;
-        background: var(--interactive-normal);
-        border: 1px solid var(--background-modifier-border);
-        border-radius: 3px;
-        cursor: pointer;
-        font-size: 12px;
-        height: 24px;
-        margin-top: 6px;
-      `;
+      insertUpButton.className = 'cp-localizer-move-button';
       insertUpButton.addEventListener('click', () => this.insertEmptyLineUp(index));
       this.insertUpButtons.push(insertUpButton);
 
@@ -5296,53 +4650,27 @@ class ChunkEditModal extends Modal {
       const insertDownButton = row.createEl('button');
       insertDownButton.textContent = '↓';
       insertDownButton.title = this.plugin.modal('MOVE_DOWN_TOOLTIP');
-      insertDownButton.style.cssText = `
-        padding: 4px;
-        background: var(--interactive-normal);
-        border: 1px solid var(--background-modifier-border);
-        border-radius: 3px;
-        cursor: pointer;
-        font-size: 12px;
-        height: 24px;
-        margin-top: 6px;
-      `;
+      insertDownButton.className = 'cp-localizer-move-button';
       insertDownButton.addEventListener('click', () => this.insertEmptyLine(index));
       this.insertButtons.push(insertDownButton);
     });
 
     // ボタンエリア
     const buttonArea = contentEl.createDiv();
-    buttonArea.style.cssText = `
-      display: flex;
-      justify-content: flex-end;
-      gap: 12px;
-    `;
+    buttonArea.className = 'cp-localizer-button-area';
 
     // 右側ボタングループ
     const rightButtons = buttonArea.createDiv();
-    rightButtons.style.cssText = `display: flex; gap: 8px;`;
+    rightButtons.className = 'cp-localizer-button-group';
 
     // キャンセルボタン
     const cancelButton = rightButtons.createEl('button', { text: this.plugin.modal('CANCEL') });
-    cancelButton.style.cssText = `
-      padding: 8px 16px;
-      background: var(--interactive-normal);
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 4px;
-      cursor: pointer;
-    `;
+    cancelButton.className = 'cp-localizer-cancel-button';
     cancelButton.addEventListener('click', () => this.close());
 
     // 保存ボタン
     const saveButton = rightButtons.createEl('button', { text: this.plugin.modal('SAVE') });
-    saveButton.style.cssText = `
-      padding: 8px 16px;
-      background: var(--interactive-accent);
-      border: 1px solid var(--interactive-accent);
-      border-radius: 4px;
-      cursor: pointer;
-      color: var(--text-on-accent);
-    `;
+    saveButton.className = 'cp-localizer-save-button';
     
     saveButton.addEventListener('click', async () => {
       const finalTranslatedStrings = this.translationInputs.map(input => input.value.trim());
@@ -5485,34 +4813,12 @@ class ChunkEditModal extends Modal {
     const savedSize = this.plugin.settings.chunkEditSize;
     modal.style.width = savedSize.width + 'px';
     modal.style.height = savedSize.height + 'px';
-    modal.style.maxWidth = 'none';
-    modal.style.maxHeight = 'none';
-    modal.style.minWidth = '600px';
-    modal.style.minHeight = '400px';
-    modal.style.resize = 'none';
+    modal.classList.add('cp-localizer-chunk-modal-resizable');
     
     // リサイズハンドルを作成
     const resizeHandle = modal.createDiv();
-    resizeHandle.className = 'chunk-edit-modal-resize-handle';
     resizeHandle.textContent = '⋰';
-    resizeHandle.style.cssText = `
-      position: absolute;
-      bottom: 0;
-      right: 0;
-      width: 20px;
-      height: 20px;
-      cursor: nw-resize;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      color: var(--text-muted);
-      background: var(--background-primary);
-      border-left: 1px solid var(--background-modifier-border);
-      border-top: 1px solid var(--background-modifier-border);
-      user-select: none;
-      transition: color 0.2s ease;
-    `;
+    resizeHandle.className = 'cp-localizer-resize-handle';
     
     // リサイズ機能の実装
     let isResizing = false;
@@ -5526,16 +4832,17 @@ class ChunkEditModal extends Modal {
       startY = e.clientY;
       startWidth = parseInt(window.getComputedStyle(modal, null).getPropertyValue('width'));
       startHeight = parseInt(window.getComputedStyle(modal, null).getPropertyValue('height'));
-      
-      document.body.style.cursor = 'nw-resize';
-      document.body.style.userSelect = 'none';
+      const computedStyle = getComputedStyle(modal);
+      const minWidth = parseInt(computedStyle.minWidth);
+      const minHeight = parseInt(computedStyle.minHeight);
+      document.body.classList.add('cp-localizer-body-dragging');
       
       const handleMouseMove = (e) => {
         if (!isResizing) return;
         
-        const width = Math.max(600, startWidth + (e.clientX - startX));
-        const height = Math.max(400, startHeight + (e.clientY - startY));
-        
+        const width = Math.max(minWidth, startWidth + (e.clientX - startX));
+        const height = Math.max(minHeight, startHeight + (e.clientY - startY));
+                
         modal.style.width = width + 'px';
         modal.style.height = height + 'px';
       };
@@ -5543,8 +4850,7 @@ class ChunkEditModal extends Modal {
       const handleMouseUp = () => {
         if (isResizing) {
           isResizing = false;
-          document.body.style.cursor = '';
-          document.body.style.userSelect = '';
+          document.body.classList.remove('cp-localizer-body-dragging');
           
           // サイズを保存
           const finalWidth = parseInt(modal.style.width);
@@ -5729,7 +5035,6 @@ class CommunityPluginLocalizerSettingTab extends PluginSettingTab {
       text: getLayoutStatusText(this.plugin.settings.menuLayoutHorizontal),
       cls: "setting-item-description"
     });
-    statusText.style.color = "var(--text-muted)";
 
     containerEl.createEl("h3", { text: this.plugin.st('STORAGE_SECTION') });
 
@@ -5740,16 +5045,8 @@ class CommunityPluginLocalizerSettingTab extends PluginSettingTab {
     // 保存場所を表示
     const pathDiv = storageInfo.descEl.createDiv({
       text: `📁 CPLocalizer-translations/`,
-      cls: "setting-item-description"
+      cls: "setting-item-description cp-localizer-path-display"
     });
-    pathDiv.style.cssText = `
-      font-family: var(--font-monospace);
-      background: var(--background-secondary);
-      padding: 8px;
-      border-radius: 4px;
-      margin-top: 8px;
-      font-size: 12px;
-    `;
 
     // 削除時の注意を追加
     storageInfo.descEl.createDiv({
@@ -5861,89 +5158,50 @@ class CommunityPluginLocalizerSettingTab extends PluginSettingTab {
     testStringSetting.descEl.createEl('div', { text: this.plugin.st('STRING_EXTRACTION_TEST_DESC1') });
     testStringSetting.descEl.createEl('div', { 
       text: this.plugin.st('STRING_EXTRACTION_TEST_DESC2'),
-      attr: { style: 'margin-top: 8px; color: var(--text-muted); font-size: 13px;' }
+      cls: 'cp-localizer-test-desc-spaced'
     });
     testStringSetting.descEl.createEl('div', { 
       text: this.plugin.st('STRING_EXTRACTION_TEST_DESC3'),
-      attr: { style: 'color: var(--text-muted); font-size: 13px;' }
+      cls: 'cp-localizer-test-desc-muted'
     });
-      
+
     // テスト用コンテナを作成
     const testContainer = containerEl.createDiv();
-    testContainer.style.cssText = `
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 6px;
-      padding: 16px;
-      margin: 12px 0;
-      background: var(--background-secondary);
-    `;
+    testContainer.className = 'cp-localizer-test-container';
 
     // テキストエリア
     const testTextArea = testContainer.createEl('textarea');
     testTextArea.placeholder = this.plugin.st('TEST_PLACEHOLDER');
-    testTextArea.style.cssText = `
-      width: 100%;
-      min-height: 80px;
-      padding: 8px 12px;
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 4px;
-      background: var(--background-primary);
-      font-family: var(--font-text);
-      font-size: 14px;
-      resize: vertical;
-      margin-bottom: 12px;
-    `;
+    testTextArea.className = 'cp-localizer-test-textarea';
 
     // ボタンエリア
     const buttonArea = testContainer.createDiv();
-    buttonArea.style.cssText = `
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      margin-bottom: 16px;
-    `;
+    buttonArea.className = 'cp-localizer-test-button-area';
 
     // 判定実行ボタン
     const testButton = buttonArea.createEl('button');
     testButton.textContent = this.plugin.st('TEST_BUTTON');
-    testButton.style.cssText = `
-      padding: 8px 16px;
-      background: var(--interactive-accent);
-      border: 1px solid var(--interactive-accent);
-      border-radius: 4px;
-      cursor: pointer;
-      color: var(--text-on-accent);
-      font-weight: 500;
-    `;
+    testButton.className = 'cp-localizer-test-button-primary';
 
     // クリアボタン
     const clearButton = buttonArea.createEl('button');
     clearButton.textContent = this.plugin.st('CLEAR_BUTTON');
-    clearButton.style.cssText = `
-      padding: 8px 16px;
-      background: var(--interactive-normal);
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 4px;
-      cursor: pointer;
-    `;
+    clearButton.className = 'cp-localizer-test-button-secondary';
 
     // 結果表示エリア
     const resultArea = testContainer.createDiv();
-    resultArea.style.cssText = `
-      min-height: 40px;
-      display: none;
-    `;
+    resultArea.className = 'cp-localizer-test-result-area';
 
     // イベントハンドラー
     testButton.addEventListener('click', () => {
       const inputText = testTextArea.value;
       if (!inputText.trim()) {
-        resultArea.style.display = 'block';
+        resultArea.classList.add('show');
         resultArea.empty();
-        resultArea.createEl('div', {
-          text: this.plugin.st('TEST_ERROR_EMPTY'),
-          attr: { style: 'color: var(--text-error); padding: 8px;' }
+        const errorTextDiv = resultArea.createEl('div', {
+          text: this.plugin.st('TEST_ERROR_EMPTY')
         });
+        errorTextDiv.className = 'cp-localizer-test-error-text';
         return;
       }
 
@@ -5953,25 +5211,19 @@ class CommunityPluginLocalizerSettingTab extends PluginSettingTab {
 
     clearButton.addEventListener('click', () => {
       testTextArea.value = '';
-      resultArea.style.display = 'none';
+      resultArea.classList.remove('show');
       resultArea.empty();
     });
   }
   
   // テスト結果表示メソッド
   displayTestResult(resultArea, result) {
-    resultArea.style.display = 'block';
+    resultArea.classList.add('show');
     resultArea.empty();
     
     if (!result.success) {
       const errorDiv = resultArea.createDiv();
-      errorDiv.style.cssText = `
-        padding: 12px;
-        background: var(--background-primary);
-        border: 2px solid var(--text-error);
-        border-radius: 4px;
-        color: var(--text-error);
-      `;
+      errorDiv.className = 'cp-localizer-test-error-container';
       errorDiv.createEl('div', { text: this.plugin.st('TEST_RESULT_ERROR') });
       errorDiv.createEl('div', { text: result.error });
       return;
@@ -5979,23 +5231,20 @@ class CommunityPluginLocalizerSettingTab extends PluginSettingTab {
 
     // メイン結果
     const mainResult = resultArea.createDiv();
-    mainResult.style.cssText = `
-      padding: 12px;
-      background: var(--background-primary);
-      border: 2px solid ${result.result ? 'var(--text-success)' : 'var(--text-error)'};
-      border-radius: 4px;
-      margin-bottom: 12px;
-    `;
+    mainResult.className = 'cp-localizer-test-result-container';
+    mainResult.setAttribute('data-result', result.result ? 'success' : 'failed');
 
     const resultText = result.result ? 
     this.plugin.st('TEST_RESULT_SUCCESS') : 
     this.plugin.st('TEST_RESULT_FAILED');
     const resultColor = result.result ? 'var(--text-success)' : 'var(--text-error)';
-
-    mainResult.createEl('div', {
-      text: `🔍 ${resultText}`,
-      attr: { style: `font-weight: bold; font-size: 16px; color: ${resultColor}; margin-bottom: 8px;` }
+    
+    // メイン結果の文字の色
+    const titleDiv = mainResult.createEl('div', {
+      text: `🔍 ${resultText}`
     });
+    titleDiv.className = 'cp-localizer-test-result-title';
+    titleDiv.setAttribute('data-result', result.result ? 'success' : 'failed');
 
     // 入力情報
     const inputDiv = mainResult.createDiv();
@@ -6010,49 +5259,44 @@ class CommunityPluginLocalizerSettingTab extends PluginSettingTab {
     // 除外理由（対象外の場合）
     if (!result.result && result.reason && result.detail) {
       const reasonDiv = mainResult.createDiv();
-      reasonDiv.style.cssText = `margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--background-modifier-border);`;
-      reasonDiv.createEl('div', {
-        text: `${this.plugin.st('TEST_EXCLUDE_REASON')} ${result.reason}`,
-        attr: { style: 'color: var(--text-error); font-weight: 500;' }
+      reasonDiv.className = 'cp-localizer-test-reason-section';
+      const reasonTextDiv = reasonDiv.createEl('div', {
+        text: `${this.plugin.st('TEST_EXCLUDE_REASON')} ${result.reason}`
       });
-      reasonDiv.createEl('div', {
-        text: `${this.plugin.st('TEST_DETAIL_LABEL')} ${result.detail}`,
-        attr: { style: 'color: var(--text-muted); margin-top: 4px;' }
+      reasonTextDiv.className = 'cp-localizer-test-reason-text';
+      const detailTextDiv = reasonDiv.createEl('div', {
+        text: `${this.plugin.st('TEST_DETAIL_LABEL')} ${result.detail}`
       });
+      detailTextDiv.className = 'cp-localizer-test-detail-text';
     }
 
     // 判定ステップ
     if (result.steps && result.steps.length > 0) {
       const stepsDiv = resultArea.createDiv();
-      stepsDiv.style.cssText = `
-        padding: 12px;
-        background: var(--background-primary);
-        border: 1px solid var(--background-modifier-border);
-        border-radius: 4px;
-      `;
+      stepsDiv.className = 'cp-localizer-test-steps-container';
 
-      stepsDiv.createEl('div', {
-        text: this.plugin.st('TEST_STEPS_TITLE'),
-        attr: { style: 'font-weight: bold; margin-bottom: 8px;' }
+      const stepsTitleDiv = stepsDiv.createEl('div', {
+        text: this.plugin.st('TEST_STEPS_TITLE')
       });
+      //　判定名
+      stepsTitleDiv.className = 'cp-localizer-test-steps-title';
 
       result.steps.forEach((step, index) => {
         const stepDiv = stepsDiv.createDiv();
-        stepDiv.style.cssText = `
-          padding: 4px 8px;
-          margin: 2px 0;
-          border-radius: 3px;
-          background: ${step.status === '❌' ? 'rgba(var(--color-red-rgb), 0.1)' : 
-                      step.status === '✅' ? 'rgba(var(--color-green-rgb), 0.1)' : 
-                      'var(--background-secondary)'};
-        `;
+        //判定理由
+        stepDiv.className = 'cp-localizer-test-step-item';
+        stepDiv.setAttribute('data-status', 
+          step.status === '❌' ? 'error' : 
+          step.status === '✅' ? 'success' : 'neutral'
+        );
         
         stepDiv.textContent = `${step.status} ${step.name}`;
         if (step.reason) {
           const reasonSpan = stepDiv.createEl('span', {
-            text: ` - ${step.reason}`,
-            attr: { style: 'color: var(--text-muted); font-size: 13px;' }
+            text: ` - ${step.reason}`
           });
+          // 判定詳細説明
+          reasonSpan.className = 'cp-localizer-test-step-reason';
         }
       });
     }
@@ -6134,19 +5378,14 @@ class TranslationDeleteConfirmModal extends Modal {
 
 
     // 警告メッセージ
+    // 削除確認モーダル
     const warningDiv = contentEl.createDiv();
-    warningDiv.style.cssText = `
-      padding: 16px;
-      background: var(--background-secondary);
-      border: 2px solid var(--text-error);
-      border-radius: 6px;
-      margin-bottom: 20px;
-    `;
-    
+    warningDiv.className = 'cp-localizer-warning-container';
+    // 赤色警告メッセージ
     const warningTitle = warningDiv.createEl('div', {
-      text: this.plugin.modal('DELETE_WARNING_TITLE'),
-      attr: { style: 'font-weight: bold; color: var(--text-error); margin-bottom: 8px; font-size: 16px;' }
+      text: this.plugin.modal('DELETE_WARNING_TITLE')
     });
+    warningTitle.className = 'cp-localizer-warning-title';
     
     const warningText = warningDiv.createEl('div');
     warningText.appendText(this.plugin.modal('DELETE_WARNING_TEXT'));
@@ -6154,11 +5393,7 @@ class TranslationDeleteConfirmModal extends Modal {
 
     // 結果説明
     const resultDiv = contentEl.createDiv();
-    resultDiv.style.cssText = `
-      padding: 12px;
-      margin-bottom: 20px;
-      color: var(--text-muted);
-    `;
+    resultDiv.className = 'cp-localizer-result-description';
     
     resultDiv.createEl('div', { text: this.plugin.modal('DELETE_RESULT_TITLE') });
     resultDiv.createEl('div', { text: this.plugin.modal('DELETE_RESULT_TRASH') });
@@ -6166,34 +5401,20 @@ class TranslationDeleteConfirmModal extends Modal {
 
     // ボタンエリア
     const buttonArea = contentEl.createDiv();
-    buttonArea.style.cssText = `
-      display: flex;
-      justify-content: flex-end;
-      gap: 12px;
-    `;
+    buttonArea.className = 'cp-localizer-button-area';
+
+    const rightButtons = buttonArea.createDiv();
+    rightButtons.className = 'cp-localizer-button-group';
+
 
     // キャンセルボタン
-    const cancelButton = buttonArea.createEl('button', { text: this.plugin.modal('CANCEL') });
-    cancelButton.style.cssText = `
-      padding: 8px 16px;
-      background: var(--interactive-normal);
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 4px;
-      cursor: pointer;
-    `;
+    const cancelButton = rightButtons.createEl('button', { text: this.plugin.modal('CANCEL') });
+    cancelButton.className = 'cp-localizer-cancel-button';
     cancelButton.addEventListener('click', () => this.close());
 
     // 削除実行ボタン
-    const deleteButton = buttonArea.createEl('button', { text: this.plugin.modal('DELETE_EXECUTE') });
-    deleteButton.style.cssText = `
-      padding: 8px 16px;
-      background: var(--text-error);
-      border: 1px solid var(--text-error);
-      border-radius: 4px;
-      cursor: pointer;
-      color: var(--text-on-accent);
-      font-weight: bold;
-    `;
+    const deleteButton = rightButtons.createEl('button', { text: this.plugin.modal('DELETE_EXECUTE') });
+    deleteButton.className = 'cp-localizer-delete-button';
     
     deleteButton.addEventListener('click', async () => {
       const success = await this.plugin.executeTranslationDeletion(
