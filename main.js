@@ -1013,7 +1013,6 @@ module.exports = class CommunityPluginLocalizerPlugin extends Plugin {
   }
 
   async onload() {
-    console.log("✅ CPLocalizerPlugin loaded");
     // デフォルト設定を追加
     await this.loadSettings();
 
